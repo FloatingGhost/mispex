@@ -108,25 +108,25 @@ defmodule MISP do
   @doc """
   Interact with restSearch endpoints
 
-    iex> MISP.search("attributes", %{"value" => "8.8.8.8", "type" => "ip-dst"})
-    [
-      %{
-        "Event" => %{
+      iex> MISP.search("attributes", %{"value" => "8.8.8.8", "type" => "ip-dst"})
+      [
+        %{
+          "Event" => %{
+          },
+          "category" => "Network activity",
+          "event_id" => "someId",
+          "type" => "ip-dst",
+          "value" => "8.8.8.8"
         },
-        "category" => "Network activity",
-        "event_id" => "someId",
-        "type" => "ip-dst",
-        "value" => "8.8.8.8"
-      },
-    ]
+      ]
 
-    iex> MISP.search("events", %{"eventid" => "12345"})
-    [
-      %{
-        "Event" => %{
+      iex> MISP.search("events", %{"eventid" => "12345"})
+      [
+        %{
+          "Event" => %{
+          }
         }
-      }
-    ]
+      ]
   """
   def search("attributes", %{} = params) do
     search_base = %{
@@ -267,23 +267,23 @@ defmodule MISP do
   @doc """
   Create a new attribute
 
-    iex> event_id = 955
-    iex> MISP.create_attribute(event_id, %{"type" =>" ip-dst", "value" => "8.8.8.8"})
-    %{
-      "Event" => %{
-        "Attribute" => [
-          %{
-            "type" => "ip-dst",
-            "value" => "8.8.8.8"
-          }
-        ]
+      iex> event_id = 955
+      iex> MISP.create_attribute(event_id, %{"type" =>" ip-dst", "value" => "8.8.8.8"})
+      %{
+        "Event" => %{
+          "Attribute" => [
+            %{
+              "type" => "ip-dst",
+              "value" => "8.8.8.8"
+            }
+          ]
+        }
       }
-    }
 
   Can also be piped with create_event
 
-    iex> MISP.create_event(%{"info" => "my event"})
-         |> MISP.create_attribute(%{"type" =>" ip-dst", "value" => "8.8.8.8"})
+      iex> MISP.create_event(%{"info" => "my event"})
+           |> MISP.create_attribute(%{"type" =>" ip-dst", "value" => "8.8.8.8"})
   """
   def create_attribute(event, %{} = params) do
     mandatory_attributes = ["value", "type"]
