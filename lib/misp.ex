@@ -41,7 +41,7 @@ defmodule MISP do
     |> handle_response()
   end
 
-  defp post(options, path, body \\ %{}) do
+  defp post(options, path, %{} = body \\ %{}) do
     options
     |> Keyword.get(:url)
     |> URI.merge(path)
@@ -49,7 +49,7 @@ defmodule MISP do
     |> HTTPoison.post(
         Poison.encode!(body),
         headers(options),
-        timeout: 60
+        timeout: 100 * 60
     )
     |> handle_response()
   end
@@ -65,6 +65,20 @@ defmodule MISP do
     end
   end
 
+  def limit_allowed_search_terms(%{} = params, allowed_attributes) do
+    allowed_attributes
+    |> Enum.reduce(
+        %{},
+        fn key, acc -> 
+          if Map.has_key?(params, key) do
+            Map.put(acc, key, params[key])
+          else
+            acc
+          end
+        end
+    ) 
+  end
+
   def test_connection do
     version_info = 
       config()
@@ -73,5 +87,56 @@ defmodule MISP do
 
     Logger.debug("Connection successful, server is running #{version_info}")
     version_info
+  end
+
+  @doc """
+  Search MISP at the index level. Query values can be negated by prepending an
+  exclamation mark (!)
+
+    iex> MISP.search(%{published: true, eventid: 5})
+  """
+  def search("attributes", %{} = params) do
+    search_base = %{
+      "returnFormat" => "json"
+    }
+
+    allowed_attributes = [
+      "returnFormat", "page", "limit", "value", "type", "category", "org", "tags",
+      "from", "to", "last", "eventid", "withAttachments", "uuid",
+      "publish_timestamp", "timestamp", "enforceWarninglist", "to_ids",
+      "deleted", "includeEventUuid", "includeEventTags", "event_timestamp",
+      "threat_level_id", "eventinfo", "includeProposals"
+    ]
+
+    to_post = 
+      search_base
+      |> Map.merge(params)
+      |> limit_allowed_search_terms(allowed_attributes)
+
+    config()
+    |> post("/attributes/restSearch", to_post)
+  end
+
+  def search("events", %{} = params) do
+    search_base = %{
+      "returnFormat" => "json"
+    }
+
+    allowed_attributes = [
+      "returnFormat", "page", "limit", "value", "type", "category", "org",
+      "tag", "tags", "searchall", "from", "to", "last",
+      "eventid", "withAttachments", "metadata", "uuid",
+      "published", "publish_timestamp", "timestamp",
+      "enforceWarninglist", "sgReferenceOnly",
+      "eventinfo"
+    ]
+
+    to_post =
+      search_base
+      |> Map.merge(params)
+      |> limit_allowed_search_terms(allowed_attributes)
+
+    config()
+    |> post("/events/restSearch", to_post)
   end
 end
