@@ -9,11 +9,12 @@ defmodule MISP.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
       source_url: "https://github.com/FloatingGhost/mispex"
     ]
   end
 
-  def package do
+  defp package() do
     [
       licenses: ["MIT"],
       links: %{"MISP Project" => "http://misp.software"}
@@ -31,7 +32,8 @@ defmodule MISP.MixProject do
   defp deps do
     [
       {:httpoison, "~> 1.4"},
-      {:poison, "~> 3.1"}
+      {:poison, "~> 3.1"},
+      {:ex_doc, ">= 0.0.0", only: :dev}
     ]
   end
 end
