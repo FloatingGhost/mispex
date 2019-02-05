@@ -20,23 +20,24 @@ defmodule MISP do
   defp config do
     Application.get_all_env(:mispex)
     |> merge_config()
-  end 
+  end
 
   defp headers(options) do
-    [{"Content-Type", "application/json"},
-     {"Accept", "application/json"},
-     {"Authorization", Keyword.get(options, :apikey)}
+    [
+      {"Content-Type", "application/json"},
+      {"Accept", "application/json"},
+      {"Authorization", Keyword.get(options, :apikey)}
     ]
-  end 
+  end
 
   defp get(options, path) do
     options
     |> Keyword.get(:url)
     |> URI.merge(path)
-    |> URI.to_string()    
+    |> URI.to_string()
     |> HTTPoison.get(
-        headers(options),
-        timeout: 100 * 60
+      headers(options),
+      timeout: 100 * 60
     )
     |> handle_response()
   end
@@ -47,21 +48,23 @@ defmodule MISP do
     |> URI.merge(path)
     |> URI.to_string()
     |> HTTPoison.post(
-        Poison.encode!(body),
-        headers(options),
-        timeout: 100 * 60
+      Poison.encode!(body),
+      headers(options),
+      timeout: 100 * 60
     )
     |> handle_response()
   end
 
   defp handle_response(resp) do
     case resp do
-       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-          Poison.decode!(body)
-       {:ok, %HTTPoison.Response{status_code: code, body: body}} ->
-          IO.warn "Non-success code #{code}, #{body}"
-       {:error, %HTTPoison.Error{reason: reason}} ->
-          IO.inspect reason
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        Poison.decode!(body)
+
+      {:ok, %HTTPoison.Response{status_code: code, body: body}} ->
+        IO.warn("Non-success code #{code}, #{body}")
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        IO.inspect(reason)
     end
   end
 
@@ -69,10 +72,10 @@ defmodule MISP do
     not_included =
       mandatory_attributes
       |> Enum.filter(fn x -> not Map.has_key?(params, x) end)
-    
+
     unless Enum.count(not_included) > 0 do
       params
-    else 
+    else
       error_msg = Enum.join(not_included, ",")
       raise ArgumentError, "Required parameters missing: #{error_msg}"
     end
@@ -81,19 +84,19 @@ defmodule MISP do
   defp limit_keys_to_permitted(%{} = params, allowed_attributes) do
     allowed_attributes
     |> Enum.reduce(
-        %{},
-        fn key, acc -> 
-          if Map.has_key?(params, key) do
-            Map.put(acc, key, params[key])
-          else
-            acc
-          end
+      %{},
+      fn key, acc ->
+        if Map.has_key?(params, key) do
+          Map.put(acc, key, params[key])
+        else
+          acc
         end
-    ) 
+      end
+    )
   end
 
   def test_connection do
-    version_info = 
+    version_info =
       config()
       |> get("/servers/getVersion.json")
       |> Map.get("version")
@@ -131,14 +134,34 @@ defmodule MISP do
     }
 
     allowed_attributes = [
-      "returnFormat", "page", "limit", "value", "type", "category", "org", "tags",
-      "from", "to", "last", "eventid", "withAttachments", "uuid",
-      "publish_timestamp", "timestamp", "enforceWarninglist", "to_ids",
-      "deleted", "includeEventUuid", "includeEventTags", "event_timestamp",
-      "threat_level_id", "eventinfo", "includeProposals"
+      "returnFormat",
+      "page",
+      "limit",
+      "value",
+      "type",
+      "category",
+      "org",
+      "tags",
+      "from",
+      "to",
+      "last",
+      "eventid",
+      "withAttachments",
+      "uuid",
+      "publish_timestamp",
+      "timestamp",
+      "enforceWarninglist",
+      "to_ids",
+      "deleted",
+      "includeEventUuid",
+      "includeEventTags",
+      "event_timestamp",
+      "threat_level_id",
+      "eventinfo",
+      "includeProposals"
     ]
 
-    to_post = 
+    to_post =
       search_base
       |> Map.merge(params)
       |> limit_keys_to_permitted(allowed_attributes)
@@ -155,11 +178,28 @@ defmodule MISP do
     }
 
     allowed_attributes = [
-      "returnFormat", "page", "limit", "value", "type", "category", "org",
-      "tag", "tags", "searchall", "from", "to", "last",
-      "eventid", "withAttachments", "metadata", "uuid",
-      "published", "publish_timestamp", "timestamp",
-      "enforceWarninglist", "sgReferenceOnly",
+      "returnFormat",
+      "page",
+      "limit",
+      "value",
+      "type",
+      "category",
+      "org",
+      "tag",
+      "tags",
+      "searchall",
+      "from",
+      "to",
+      "last",
+      "eventid",
+      "withAttachments",
+      "metadata",
+      "uuid",
+      "published",
+      "publish_timestamp",
+      "timestamp",
+      "enforceWarninglist",
+      "sgReferenceOnly",
       "eventinfo"
     ]
 
@@ -183,17 +223,25 @@ defmodule MISP do
   end
 
   def get_event(%{"Event" => _} = event) do
-   event
+    event
   end
 
   def create_event(%{} = params) do
     mandatory_attributes = ["info"]
+
     allowed_attributes = [
-      "info", "threat_level_id", "analysis", "distribution", "sharing_group_id",
-      "uuid", "published", "timestamp", "date", 
+      "info",
+      "threat_level_id",
+      "analysis",
+      "distribution",
+      "sharing_group_id",
+      "uuid",
+      "published",
+      "timestamp",
+      "date"
     ]
 
-    to_post = 
+    to_post =
       params
       |> enforce_mandatory_keys(mandatory_attributes)
       |> limit_keys_to_permitted(allowed_attributes)
@@ -203,7 +251,7 @@ defmodule MISP do
   end
 
   defp append_new_attribute(%{} = attribute, %{"Event" => %{"Attribute" => attr_list}} = event) do
-    new_attr_list = 
+    new_attr_list =
       attr_list
       |> List.insert_at(0, attribute)
 
@@ -239,10 +287,17 @@ defmodule MISP do
   """
   def create_attribute(event, %{} = params) do
     mandatory_attributes = ["value", "type"]
+
     allowed_attributes = [
-      "value", "type", "category", "to_ids",
-      "uuid", "distribution", "sharing_group_id",
-      "timestamp", "comment"
+      "value",
+      "type",
+      "category",
+      "to_ids",
+      "uuid",
+      "distribution",
+      "sharing_group_id",
+      "timestamp",
+      "comment"
     ]
 
     to_post =
