@@ -5,7 +5,7 @@ defmodule MISP do
   An elixir binding for MISP's API
   """
 
-  def defaults do
+  defp defaults do
     [
       url: "https://misp.example",
       apikey: "ExampleAPI"
@@ -68,7 +68,7 @@ defmodule MISP do
     end
   end
 
-  def enforce_mandatory_keys(%{} = params, mandatory_attributes) do
+  defp enforce_mandatory_keys(%{} = params, mandatory_attributes) do
     not_included =
       mandatory_attributes
       |> Enum.filter(fn x -> not Map.has_key?(params, x) end)
@@ -217,6 +217,17 @@ defmodule MISP do
     {:error, reason: "Invalid index #{index}"}
   end
 
+  @doc"""
+  Get an event object from MISP. Can take either an event ID or an
+  event object (mainly useful for piping events through multiple
+  attribute creation steps)
+
+      iex> MISP.get_event(955)
+      %{
+        "Event" => %{
+        }
+      }
+  """
   def get_event(id) when is_integer(id) or is_binary(id) do
     config()
     |> get("/events/#{id}")
@@ -226,6 +237,18 @@ defmodule MISP do
     event
   end
 
+  @doc"""
+  Create a new event
+
+  Mandatory arguments: info
+
+      iex> MISP.create_event(%{"info" => "my event"})
+      %{            
+        "Event" => %{
+          "info" => "my event"
+        }           
+      }
+  """
   def create_event(%{} = params) do
     mandatory_attributes = ["info"]
 
