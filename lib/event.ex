@@ -4,18 +4,19 @@ defmodule MISP.Event do
 
       iex> %MISP.EventInfo{info: "hello world!"} |> MISP.Event.create() |> MISP.Event.delete()
   """
-  use TypedStruct
-
   alias MISP.{
     EventInfo,
     HTTP,
     Event,
-    Attribute
+    Attribute,
+    Tag
   }
 
+  use TypedStruct
   typedstruct do
     field :Event, %EventInfo{}
   end
+  use Accessible
 
   def decoder do
     %Event{
@@ -72,6 +73,29 @@ defmodule MISP.Event do
   def create(event) do
     with %Event{} = event <- wrap(event) do
       HTTP.post("/events/add", event, MISP.Event.decoder())
+    else
+      err -> raise ArgumentError, err
+    end
+  end
+
+  @doc"""
+  Update an event
+  Will update the event's timestamp and push the result
+
+      iex> MISP.Event.get(16) |> put_in([:Event, :info], "new info!") |> MISP.Event.update()
+      %MISP.Event{
+        Event: %MISP.EventInfo{
+          info: "new info!"
+        }
+      }
+  """
+  def update(event) do
+    with %Event{Event: %EventInfo{id: event_id}} = event <- wrap(event) do
+        updated_event = 
+            event
+            |> put_in([:Event, :timestamp], :os.system_time(:seconds))
+
+        HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
     else
       err -> raise ArgumentError, err
     end
@@ -150,4 +174,42 @@ defmodule MISP.Event do
     HTTP.post("/events/restSearch", search_params)
     |> Map.get("response")
   end
+
+  @doc"""
+  Add a tag to an event
+
+      iex> MISP.Event.get(24) |> MISP.Event.add_tag(%MISP.Tag{name: "test", colour: "#ff0000"})
+      %MISP.Event{
+        Event: %MISP.EventInfo{
+          Tag: [
+            %MISP.Tag{
+              colour: "#ff0000",
+              exportable: true,
+              hide_tag: false,
+              id: "1",
+              name: "test"
+            }
+          ]
+        }
+      }
+  """
+  def add_tag(event, %Tag{} = tag) do
+    with %Event{} = event <- wrap(event) do
+        tag = 
+            tag
+            |> MISP.Tag.create()
+       
+        new_tags =
+            event
+            |> get_in([:Event, :Tag])
+            |> List.insert_at(0, tag)
+
+        event
+        |> put_in([:Event, :Tag], new_tags)
+        |> Event.update()
+    else
+        err -> raise ArgumentError, err
+    end
+  end
+
 end

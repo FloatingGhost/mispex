@@ -1,5 +1,4 @@
 defmodule MISP.EventInfo do
-  use TypedStruct
 
   alias MISP.{
     Org,
@@ -8,9 +7,11 @@ defmodule MISP.EventInfo do
     Attribute,
     Galaxy,
     Event,
-    Tag
+    Tag,
+    EventInfo
   }
 
+  use TypedStruct
   typedstruct do
     field :id, String.t()
     field :orgc_id, String.t()
@@ -39,6 +40,7 @@ defmodule MISP.EventInfo do
     field :Galaxy, list(%Galaxy{}), default: []
     field :Tag, list(%Tag{}), default: []
   end
+  use Accessible
 
   def decoder(stop_recursion) when stop_recursion == true do
     %MISP.EventInfo{

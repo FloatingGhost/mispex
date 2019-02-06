@@ -34,7 +34,8 @@ defmodule MISP.MixProject do
       {:httpoison, "~> 1.4"},
       {:poison, "~> 3.1"},
       {:ex_doc, ">= 0.0.0", only: :dev},
-      {:typed_struct, "~> 0.1.4"}
+      {:typed_struct, "~> 0.1.4"},
+      {:accessible, "~> 0.2.1"}
     ]
   end
 end
