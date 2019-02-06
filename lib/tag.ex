@@ -1,15 +1,15 @@
 defmodule MISP.Tag do
-    use TypedStruct
+  use TypedStruct
 
-    typedstruct do
-        field :id, String.t()
-        field :name, String.t()
-        field :colour, String.t()
-        field :exportable, boolean()
-        field :hide_tag, boolean()
-    end
+  typedstruct do
+    field :id, String.t()
+    field :name, String.t()
+    field :colour, String.t()
+    field :exportable, boolean()
+    field :hide_tag, boolean()
+  end
 
-    def decoder do
-        %MISP.Tag{}
-    end
+  def decoder do
+    %MISP.Tag{}
+  end
 end

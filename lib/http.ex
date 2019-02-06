@@ -97,5 +97,4 @@ defmodule MISP.HTTP do
   end
 
   defp check_for_error(body), do: body
-
 end
