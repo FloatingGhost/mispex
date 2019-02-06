@@ -14,4 +14,10 @@ defmodule MISP.Galaxy do
         field :version, String.t()
         field :GalaxyCluster, list(%GalaxyCluster{})
     end
+
+    def decoder do
+        %MISP.Galaxy{
+            GalaxyCluster: [GalaxyCluster.decoder]
+        }
+    end
 end

@@ -6,4 +6,8 @@ defmodule MISP.Server do
         field :url, String.t()
         field :name, String.t()
     end
+
+    def decoder do
+        %MISP.Server{}
+    end
 end

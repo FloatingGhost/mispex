@@ -7,6 +7,7 @@ defmodule MISP.EventInfo do
         SharingGroup,
         Attribute,
         Galaxy,
+        Event,
         Tag
     }
 
@@ -34,8 +35,31 @@ defmodule MISP.EventInfo do
         field :SharingGroup, %SharingGroup{}
         field :Attribute, list(%Attribute{}), default: []
         field :ShadowAttribute, list(%Attribute{}), default: []
-        field :RelatedEvent, list(%MISP.Event{}), default: []
+        field :RelatedEvent, list(%Event{}), default: []
         field :Galaxy, list(%Galaxy{}), default: []
         field :Tag, list(%Tag{}), default: []
+    end
+
+    def decoder(stop_recursion) when stop_recursion == true do
+        %MISP.EventInfo{
+            Org: Org.decoder,
+            Orgc: Orgc.decoder,
+            Attribute: [Attribute.decoder],
+            ShadowAttribute: [Attribute.decoder],
+            Galaxy: [Galaxy.decoder],
+            Tag: [Tag.decoder]
+        }
+    end
+
+    def decoder do
+        %MISP.EventInfo{
+            Org: Org.decoder,
+            Orgc: Orgc.decoder,
+            RelatedEvent: [MISP.Event.decoder(true)],
+            Attribute: [Attribute.decoder],
+            ShadowAttribute: [Attribute.decoder],
+            Galaxy: [Galaxy.decoder],
+            Tag: [Tag.decoder]
+        }
     end
 end

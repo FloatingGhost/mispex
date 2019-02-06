@@ -12,4 +12,10 @@ defmodule MISP.SharingGroupOrg do
         field :extend, boolean()
         field :Organisation, %Org{}
     end
+
+    def decoder do
+        %MISP.SharingGroupOrg{
+            Organisation: Org.decoder
+        }
+    end
 end

@@ -25,4 +25,12 @@ defmodule MISP.SharingGroup do
         field :SharingGroupOrg, list(SharingGroupOrg)
         field :SharingGroupServer, list(SharingGroupServer)
     end
+
+    def decoder do
+        %MISP.SharingGroup{
+            Organisation: Org.decoder,
+            SharingGroupOrg: [SharingGroupOrg.decoder],
+            SharingGroupServer: [SharingGroupServer.decoder]
+        }
+    end
 end

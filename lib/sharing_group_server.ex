@@ -12,4 +12,10 @@ defmodule MISP.SharingGroupServer do
         field :all_orgs, boolean()
         field :Server, %Server{}
     end
+
+    def decoder do
+        %MISP.SharingGroupServer{
+            Server: Server.decoder
+        }
+    end
 end

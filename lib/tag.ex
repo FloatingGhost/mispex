@@ -8,4 +8,8 @@ defmodule MISP.Tag do
         field :exportable, boolean()
         field :hide_tag, boolean()
     end
+
+    def decoder do
+        %MISP.Tag{}
+    end
 end

@@ -6,4 +6,8 @@ defmodule MISP.Org do
         field :name, String.t()
         field :uuid, String.t(), enforce: true
     end
+
+    def decoder do
+        %MISP.Org{uuid: ""}
+    end
 end

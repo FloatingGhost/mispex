@@ -14,4 +14,8 @@ defmodule MISP.GalaxyCluster do
         field :tag_id, String.t()
         field :meta, %{}
     end
+
+    def decoder do
+        %MISP.GalaxyCluster{}
+    end 
 end
