@@ -1,4 +1,8 @@
 defmodule MISP.Attribute do
+  @moduledoc """
+  Create and modify attributes
+  """
+
   use TypedStruct
 
   alias MISP.{
@@ -30,6 +34,9 @@ defmodule MISP.Attribute do
     field :Tag, list(%Tag{}), default: []
   end
 
+  @doc """
+  Get the object structure for decoding from JSON
+  """
   def decoder(stop_recursion) when stop_recursion == true do
     %Attribute{
       SharingGroup: SharingGroup.decoder(),
@@ -56,7 +63,7 @@ defmodule MISP.Attribute do
           uuid: "...."
       }
   """
-  def create(%Event{Event: %EventInfo{id: event_id}} = event, %Attribute{} = attribute) do
+  def create(%Event{Event: %EventInfo{id: event_id}}, %Attribute{} = attribute) do
     HTTP.post("/attributes/add/#{event_id}", attribute, Attribute.decoder())
   end
 end

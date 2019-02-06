@@ -1,4 +1,9 @@
 defmodule MISP.Event do
+  @moduledoc """
+  Create, delete and update MISP Events
+
+      iex> %MISP.EventInfo{info: "hello world!"} |> MISP.Event.create() |> MISP.Event.delete()
+  """
   use TypedStruct
 
   alias MISP.{
@@ -24,6 +29,25 @@ defmodule MISP.Event do
     }
   end
 
+  @doc """
+  To allow for easier interaction with the API, wrapping EventInfo objects
+  in Event objects can be avoided in some cases
+
+      iex> MISP.Event.wrap(%EventInfo{info: "my event"})
+      %MISP.Event{
+        Event: %EventInfo{
+            info: "my event"
+        }
+      }
+  """
+  def wrap(%Event{} = event), do: event
+
+  def wrap(%EventInfo{} = event_info) do
+    %Event{
+      Event: event_info
+    }
+  end
+
   def get(id) when is_integer(id) or is_binary(id) do
     HTTP.get("/events/#{id}", Event.decoder())
   end
@@ -31,7 +55,9 @@ defmodule MISP.Event do
   def get(%Event{} = event), do: event
 
   @doc """
-  Create a new event. Mandatory fields: info.
+  Create a new event.
+  Mandatory fields: info
+  Can be given either an Event or an EventInfo object
 
       iex> MISP.Event.create(%MISP.EventInfo{info: "hello world!"})
       %MISP.Event{
@@ -43,12 +69,12 @@ defmodule MISP.Event do
           }
       }
   """
-  def create(%Event{} = event) do
-    HTTP.post("/events/add", event, MISP.Event.decoder())
-  end
-
-  def create(%EventInfo{} = event_info) do
-    Event.create(%Event{Event: event_info})
+  def create(event) do
+    with %Event{} = event <- wrap(event) do
+      HTTP.post("/events/add", event, MISP.Event.decoder())
+    else
+      err -> raise ArgumentError, err
+    end
   end
 
   @doc """
@@ -61,8 +87,12 @@ defmodule MISP.Event do
           "url" => "/events/delete/16"
       }
   """
-  def delete(%Event{Event: %EventInfo{id: event_id}} = event) do
-    HTTP.delete("/events/#{event_id}")
+  def delete(event) do
+    with %Event{Event: %EventInfo{id: event_id}} <- wrap(event) do
+      HTTP.delete("/events/#{event_id}")
+    else
+      err -> raise ArgumentError, err
+    end
   end
 
   @doc """
@@ -87,9 +117,10 @@ defmodule MISP.Event do
       iex> attrs = [%MISP.Attribute{value: "8.8.8.8", type: "ip-dst"}, %MISP.Attribute{value: "8.8.8.8", type: "ip-src"}]
       iex> MISP.Event.get(100) |> MISP.Event.add_attribute(attrs)
   """
-  def add_attribute(%Event{Event: event_info} = event, %Attribute{} = attribute) do
-    with %Attribute{} <- Attribute.create(event, attribute) do
-      Event.get(event_info.id)
+  def add_attribute(event, %Attribute{} = attribute) do
+    with %Event{Event: %EventInfo{id: event_id}} <- wrap(event),
+         %Attribute{} <- Attribute.create(event, attribute) do
+      Event.get(event_id)
     else
       err -> IO.warn(err)
     end

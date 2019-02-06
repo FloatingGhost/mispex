@@ -1,4 +1,8 @@
 defmodule MISP.HTTP do
+  @moduledoc """
+  Standard functions to deal with posting and recieving JSON
+  """
+
   defp headers(options) do
     [
       {"Content-Type", "application/json"},
@@ -7,6 +11,12 @@ defmodule MISP.HTTP do
     ]
   end
 
+  @doc """
+  An HTTP GET Request
+
+      iex> MISP.HTTP.get("/events/16", MISP.Event.decoder())
+      %MISP.Event{}
+  """
   def get(path, decode_as \\ nil) do
     options = MISP.config()
 
@@ -22,6 +32,12 @@ defmodule MISP.HTTP do
     |> decode_response(decode_as)
   end
 
+  @doc """
+  An HTTP POST Request
+
+      iex> MISP.HTTP.post("/events/add", %MISP.Event{}, MISP.Event.decoder())
+      %MISP.Event{}
+  """
   def post(path, %{} = body, decode_as \\ nil) do
     options = MISP.config()
 
@@ -38,6 +54,12 @@ defmodule MISP.HTTP do
     |> decode_response(decode_as)
   end
 
+  @doc """
+  An HTTP DELETE Request
+         
+      iex> MISP.HTTP.delete("/events/16")
+      %{"message" => "Event deleted."}
+  """
   def delete(path) do
     options = MISP.config()
 
@@ -66,16 +88,16 @@ defmodule MISP.HTTP do
     end
   end
 
+  defp decode_response(body, nil) do
+    Poison.decode!(body)
+    |> check_for_error()
+  end
+
   defp decode_response(body, decode_as) do
     Poison.decode!(body)
     |> check_for_error()
 
     Poison.decode!(body, as: decode_as)
-  end
-
-  defp decode_response(body, nil) do
-    Poison.decode!(body)
-    |> check_for_error()
   end
 
   defp format_misp_error(%{} = errors, keys \\ []) do
