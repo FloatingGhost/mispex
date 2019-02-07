@@ -37,6 +37,7 @@ defmodule MISP.Attribute do
     field :ShadowAttribute, list(Attribute.t()), default: []
     field :Tag, list(Tag.t()), default: []
   end
+
   use Accessible
 
   @doc """
@@ -80,7 +81,7 @@ defmodule MISP.Attribute do
       attribute
       |> Map.put(:timestamp, :os.system_time(:seconds))
 
-    IO.inspect updated_attr
+    IO.inspect(updated_attr)
 
     HTTP.post(
       "/attributes/edit/#{updated_attr.id}",
@@ -147,13 +148,16 @@ defmodule MISP.Attribute do
             id: "5",
             name: "my tag"
           }
-      ]
-    }
+        ]
+      }
   """
   def add_tag(%Attribute{uuid: uuid} = attribute, %Tag{name: name} = tag) do
     with %Tag{} = tag <- Tag.create(tag) do
-      %{"message" => message} = HTTP.post("/tags/attachTagToObject", %{uuid: uuid, tag: name}, nil)
+      %{"message" => message} =
+        HTTP.post("/tags/attachTagToObject", %{uuid: uuid, tag: name}, nil)
+
       "successfully attached" =~ message
+
       attribute
       |> Map.put(:Tag, Map.get(attribute, :Tag) ++ [tag])
     else
@@ -161,7 +165,7 @@ defmodule MISP.Attribute do
     end
   end
 
-  @doc"""
+  @doc """
   Remove a tag from an attribute
 
       iex> my_attribute = %MISP.Attribute{Tag: [%MISP.Tag{name: "my tag"}]}
@@ -171,8 +175,11 @@ defmodule MISP.Attribute do
       }
   """
   def remove_tag(%Attribute{uuid: uuid, Tag: tags} = attribute, %Tag{name: name}) do
-    %{"message" => message} = HTTP.post("/tags/removeTagFromObject", %{uuid: uuid, tag: name}, nil)
+    %{"message" => message} =
+      HTTP.post("/tags/removeTagFromObject", %{uuid: uuid, tag: name}, nil)
+
     "successfully removed" =~ message
+
     attribute
     |> Map.put(:Tag, Enum.filter(tags, fn x -> x.name != name end))
   end

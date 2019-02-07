@@ -17,6 +17,7 @@ defmodule MISP.Tag do
     field :exportable, boolean(), default: true
     field :hide_tag, boolean(), default: false
   end
+
   use Accessible
 
   def decoder do
