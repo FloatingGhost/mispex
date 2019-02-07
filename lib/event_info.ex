@@ -41,14 +41,14 @@ defmodule MISP.EventInfo do
     field :sharing_group_id, String.t()
     field :disable_correlation, boolean(), default: false
     field :event_creator_email, String.t()
-    field :Org, %Org{}
-    field :Orgc, %Orgc{}
-    field :SharingGroup, %SharingGroup{}
-    field :Attribute, list(%Attribute{}), default: []
-    field :ShadowAttribute, list(%Attribute{}), default: []
-    field :RelatedEvent, list(%Event{}), default: []
-    field :Galaxy, list(%Galaxy{}), default: []
-    field :Tag, list(%Tag{}), default: []
+    field :Org, Org.t()
+    field :Orgc, Orgc.t()
+    field :SharingGroup, SharingGroup.t()
+    field :Attribute, list(Attribute.t()), default: []
+    field :ShadowAttribute, list(Attribute.t()), default: []
+    field :RelatedEvent, list(Event.t()), default: []
+    field :Galaxy, list(Galaxy.t()), default: []
+    field :Tag, list(Tag.t()), default: []
   end
 
   use Accessible

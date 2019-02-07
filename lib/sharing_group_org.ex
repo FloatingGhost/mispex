@@ -10,7 +10,7 @@ defmodule MISP.SharingGroupOrg do
     field :sharing_group_id, String.t()
     field :org_id, String.t()
     field :extend, boolean()
-    field :Organisation, %Org{}
+    field :Organisation, Org.t()
   end
 
   def decoder do

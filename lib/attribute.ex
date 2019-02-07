@@ -33,10 +33,11 @@ defmodule MISP.Attribute do
     field :disable_correlation, boolean(), default: false
     field :value, String.t()
     field :data, String.t()
-    field :SharingGroup, %SharingGroup{}
-    field :ShadowAttribute, list(%MISP.Attribute{}), default: []
-    field :Tag, list(%Tag{}), default: []
+    field :SharingGroup, SharingGroup.t()
+    field :ShadowAttribute, list(Attribute.t()), default: []
+    field :Tag, list(Tag.t()), default: []
   end
+  use Accessible
 
   @doc """
   Get the object structure for decoding from JSON
@@ -79,7 +80,15 @@ defmodule MISP.Attribute do
       attribute
       |> Map.put(:timestamp, :os.system_time(:seconds))
 
-    HTTP.post("/attributes/edit/#{updated_attr.event_id}", updated_attr, Attribute.decoder())
+    IO.inspect updated_attr
+
+    HTTP.post(
+      "/attributes/edit/#{updated_attr.id}",
+      updated_attr,
+      %{"response" => %{"Attribute" => Attribute.decoder()}}
+    )
+    |> Map.get("response")
+    |> Map.get("Attribute")
   end
 
   @doc """
@@ -92,7 +101,7 @@ defmodule MISP.Attribute do
         "url" => "/attributes/deleteSelected/17"
       }
   """
-  def delete(%Attribute{id: id, event_id: event_id} = attribute) do
+  def delete(%Attribute{id: id, event_id: event_id}) do
     HTTP.post("/attributes/deleteSelected/#{event_id}", %{id: id})
   end
 
@@ -123,5 +132,48 @@ defmodule MISP.Attribute do
     )
     |> Map.get("response")
     |> Map.get("Attribute")
+  end
+
+  @doc """
+  Add a tag to an attribute
+
+      iex> MISP.Attribute.add_tag(%MISP.Attribute{}, %MISP.Tag{name: "my tag"})
+      %MISP.Attribute{
+        Tag: [
+          %MISP.Tag{
+            colour: "#15c551",
+            exportable: true,
+            hide_tag: false,
+            id: "5",
+            name: "my tag"
+          }
+      ]
+    }
+  """
+  def add_tag(%Attribute{uuid: uuid} = attribute, %Tag{name: name} = tag) do
+    with %Tag{} = tag <- Tag.create(tag) do
+      %{"message" => message} = HTTP.post("/tags/attachTagToObject", %{uuid: uuid, tag: name}, nil)
+      "successfully attached" =~ message
+      attribute
+      |> Map.put(:Tag, Map.get(attribute, :Tag) ++ [tag])
+    else
+      err -> raise RuntimeError, "Could not create tag #{name}, #{err}"
+    end
+  end
+
+  @doc"""
+  Remove a tag from an attribute
+
+      iex> my_attribute = %MISP.Attribute{Tag: [%MISP.Tag{name: "my tag"}]}
+      iex> MISP.Attribute.remove_tag(my_attribute, %MISP.Tag{name: "my tag"})
+      %MISP.Attribute{
+        Tag: [],
+      }
+  """
+  def remove_tag(%Attribute{uuid: uuid, Tag: tags} = attribute, %Tag{name: name}) do
+    %{"message" => message} = HTTP.post("/tags/removeTagFromObject", %{uuid: uuid, tag: name}, nil)
+    "successfully removed" =~ message
+    attribute
+    |> Map.put(:Tag, Enum.filter(tags, fn x -> x.name != name end))
   end
 end

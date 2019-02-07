@@ -21,9 +21,9 @@ defmodule MISP.SharingGroup do
     field :modified, String.t()
     field :local, boolean()
     field :roaming, boolean()
-    field :Organisation, %Org{}
-    field :SharingGroupOrg, list(SharingGroupOrg)
-    field :SharingGroupServer, list(SharingGroupServer)
+    field :Organisation, Org.t()
+    field :SharingGroupOrg, list(SharingGroupOrg.t())
+    field :SharingGroupServer, list(SharingGroupServer.t())
   end
 
   def decoder do

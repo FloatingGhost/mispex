@@ -10,7 +10,7 @@ defmodule MISP.SharingGroupServer do
     field :sharing_group_id, String.t()
     field :server_id, String.t()
     field :all_orgs, boolean()
-    field :Server, %Server{}
+    field :Server, Server.t()
   end
 
   def decoder do

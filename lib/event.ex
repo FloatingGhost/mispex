@@ -17,7 +17,7 @@ defmodule MISP.Event do
   use TypedStruct
 
   typedstruct do
-    field :Event, %EventInfo{}
+    field :Event, EventInfo.t()
   end
 
   use Accessible
