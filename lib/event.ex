@@ -1,6 +1,8 @@
 defmodule MISP.Event do
   @moduledoc """
-  Create, delete and update MISP Events
+  Represents an event within MISP
+
+  Common usage:
 
       iex> %MISP.EventInfo{info: "hello world!"} |> MISP.Event.create() |> MISP.Event.delete()
   """
@@ -13,9 +15,11 @@ defmodule MISP.Event do
   }
 
   use TypedStruct
+
   typedstruct do
     field :Event, %EventInfo{}
   end
+
   use Accessible
 
   def decoder do
@@ -78,7 +82,7 @@ defmodule MISP.Event do
     end
   end
 
-  @doc"""
+  @doc """
   Update an event
   Will update the event's timestamp and push the result
 
@@ -91,11 +95,11 @@ defmodule MISP.Event do
   """
   def update(event) do
     with %Event{Event: %EventInfo{id: event_id}} = event <- wrap(event) do
-        updated_event = 
-            event
-            |> put_in([:Event, :timestamp], :os.system_time(:seconds))
+      updated_event =
+        event
+        |> put_in([:Event, :timestamp], :os.system_time(:seconds))
 
-        HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
+      HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
     else
       err -> raise ArgumentError, err
     end
@@ -111,12 +115,13 @@ defmodule MISP.Event do
           "url" => "/events/delete/16"
       }
   """
-  def delete(event) do
-    with %Event{Event: %EventInfo{id: event_id}} <- wrap(event) do
-      HTTP.delete("/events/#{event_id}")
-    else
-      err -> raise ArgumentError, err
-    end
+  def delete(%Event{Event: %EventInfo{id: event_id}} = event) do
+    HTTP.delete("/events/#{event_id}")
+  end
+
+  def delete(event) when is_list(event) do
+    event
+    |> Enum.map(fn x -> delete(x) end)
   end
 
   @doc """
@@ -150,32 +155,25 @@ defmodule MISP.Event do
     end
   end
 
-  def add_attribute(%Event{} = event, [%Attribute{} = attribute]) do
-    add_attribute(event, attribute)
-  end
-
-  def add_attribute(%Event{} = event, [head | attributes]) do
-    event =
-      event
-      |> add_attribute(head)
-
-    add_attribute(event, attributes)
+  def add_attribute(%Event{} = event, attributes) when is_list(attributes) do
+    attributes
+    |> Enum.reduce(event, fn attr, acc -> Event.add_attribute(acc, attr) end)
   end
 
   def search(%{} = params) do
     search_base = %{
-      "returnFormat" => "json"
+      returnFormat: "json"
     }
 
     search_params =
       search_base
       |> Map.merge(params)
 
-    HTTP.post("/events/restSearch", search_params)
+    HTTP.post("/events/restSearch", search_params, %{"response" => [Event.decoder()]})
     |> Map.get("response")
   end
 
-  @doc"""
+  @doc """
   Add a tag to an event
 
       iex> MISP.Event.get(24) |> MISP.Event.add_tag(%MISP.Tag{name: "test", colour: "#ff0000"})
@@ -195,21 +193,20 @@ defmodule MISP.Event do
   """
   def add_tag(event, %Tag{} = tag) do
     with %Event{} = event <- wrap(event) do
-        tag = 
-            tag
-            |> MISP.Tag.create()
-       
-        new_tags =
-            event
-            |> get_in([:Event, :Tag])
-            |> List.insert_at(0, tag)
+      tag =
+        tag
+        |> MISP.Tag.create()
 
+      new_tags =
         event
-        |> put_in([:Event, :Tag], new_tags)
-        |> Event.update()
+        |> get_in([:Event, :Tag])
+        |> List.insert_at(0, tag)
+
+      event
+      |> put_in([:Event, :Tag], new_tags)
+      |> Event.update()
     else
-        err -> raise ArgumentError, err
+      err -> raise ArgumentError, err
     end
   end
-
 end

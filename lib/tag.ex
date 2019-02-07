@@ -9,6 +9,7 @@ defmodule MISP.Tag do
   }
 
   use TypedStruct
+
   typedstruct do
     field :id, String.t()
     field :name, String.t()
@@ -16,6 +17,7 @@ defmodule MISP.Tag do
     field :exportable, boolean(), default: true
     field :hide_tag, boolean(), default: false
   end
+
   use Accessible
 
   def decoder do
@@ -23,7 +25,7 @@ defmodule MISP.Tag do
   end
 
   def create(%Tag{} = tag) do
-    HTTP.post("/tags/add", tag, %{"Tag": decoder})
+    HTTP.post("/tags/add", tag, %{Tag: decoder})
     |> Map.get("Tag")
-  end 
+  end
 end

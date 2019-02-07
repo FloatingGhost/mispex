@@ -1,6 +1,10 @@
 defmodule MISP.Attribute do
   @moduledoc """
-  Create and modify attributes
+  Represents an Attribute, usually attached to an event
+
+  Common usage would be:
+
+      iex> MISP.Event.get(16) |> Map.get(:Attribute) |> List.first() |> MISP.Attribute.delete()
   """
 
   use TypedStruct
@@ -65,5 +69,59 @@ defmodule MISP.Attribute do
   """
   def create(%Event{Event: %EventInfo{id: event_id}}, %Attribute{} = attribute) do
     HTTP.post("/attributes/add/#{event_id}", attribute, Attribute.decoder())
+  end
+
+  @doc """
+  Update an event with new values
+  """
+  def update(%Attribute{} = attribute) do
+    updated_attr =
+      attribute
+      |> Map.put(:timestamp, :os.system_time(:seconds))
+
+    HTTP.post("/attributes/edit/#{updated_attr.event_id}", updated_attr, Attribute.decoder())
+  end
+
+  @doc """
+  Delete an attribute
+
+      iex> MISP.Attribute.search(%{value: "1.1.1.1"}) |> List.first |> MISP.Attribute.delete
+      %{
+        "message" => "1 attribute deleted.",
+        "name" => "1 attribute deleted.",
+        "url" => "/attributes/deleteSelected/17"
+      }
+  """
+  def delete(%Attribute{id: id, event_id: event_id} = attribute) do
+    HTTP.post("/attributes/deleteSelected/#{event_id}", %{id: id})
+  end
+
+  @doc """
+  Search for attributes
+
+      iex> MISP.Attribute.search(%{value: "1.1.1.1"})
+      [
+        %MISP.Attribute{
+          type: "ip-dst",
+          value: "1.1.1.1"
+        }
+      ]
+  """
+  def search(%{} = params) do
+    search_base = %{
+      returnFormat: "json"
+    }
+
+    search_params =
+      search_base
+      |> Map.merge(params)
+
+    HTTP.post(
+      "/attributes/restSearch",
+      search_params,
+      %{"response" => %{"Attribute" => [Attribute.decoder()]}}
+    )
+    |> Map.get("response")
+    |> Map.get("Attribute")
   end
 end
