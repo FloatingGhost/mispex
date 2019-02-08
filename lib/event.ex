@@ -95,18 +95,18 @@ defmodule MISP.Event do
   """
   def update(event) do
     with %Event{Event: %EventInfo{id: event_id}} = event <- wrap(event) do
-      current_time = 
+      current_time =
         :os.system_time(:seconds)
         |> to_string()
 
-      unless get_in(event, [:Event, :timestamp]) == current_time do    
+      unless get_in(event, [:Event, :timestamp]) >= current_time do
         updated_event =
           event
           |> put_in([:Event, :timestamp], current_time)
 
         HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
       else
-        Process.sleep(1000)
+        Process.sleep(500)
         update(event)
       end
     else

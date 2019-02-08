@@ -26,6 +26,14 @@ defmodule MISPTest do
       |> MISP.Event.create()
   end
 
+  test "edit an event" do
+    %Event{Event: %EventInfo{info: "my event"}} =
+      %EventInfo{info: "not my event"}
+      |> MISP.Event.create()
+      |> put_in([:Event, :info], "my event")
+      |> MISP.Event.update()
+  end
+
   test "delete and event" do
     %{"message" => "Event deleted."} =
       %EventInfo{info: "my event"}
@@ -76,42 +84,43 @@ defmodule MISPTest do
 
   test "create an event and tag it" do
     # First with just a create - tag flow
-    event = 
-        %EventInfo{info: "my event"}
-        |> MISP.Event.create()
-        |> MISP.Event.add_tag(%MISP.Tag{name: "my tag"})
-        |> MISP.Event.update()
+    event =
+      %EventInfo{info: "my event"}
+      |> MISP.Event.create()
+      |> MISP.Event.add_tag(%MISP.Tag{name: "my tag"})
+      |> MISP.Event.update()
 
     assert Enum.count(get_in(event, [:Event, :Tag])) == 1
 
     # Then with a tag we create beforehand
     precreated_tag =
-        %Tag{name: "my tag"}
-        |> MISP.Tag.create()
+      %Tag{name: "my tag"}
+      |> MISP.Tag.create()
 
-    event =                                            
-        %EventInfo{info: "my event"}                   
-        |> MISP.Event.create()                         
-        |> MISP.Event.add_tag(precreated_tag)
-        |> MISP.Event.update()
+    event =
+      %EventInfo{info: "my event"}
+      |> MISP.Event.create()
+      |> MISP.Event.add_tag(precreated_tag)
+      |> MISP.Event.update()
 
     assert Enum.count(get_in(event, [:Event, :Tag])) == 1
 
     # Then in the original object
-    event =                                            
-        %EventInfo{info: "my event", Tag: [%Tag{name: "my tag"}]}                   
-        |> MISP.Event.create()                         
+    event =
+      %EventInfo{info: "my event", Tag: [%Tag{name: "my tag"}]}
+      |> MISP.Event.create()
 
     assert Enum.count(get_in(event, [:Event, :Tag])) == 1
   end
 
   test "crate an attribute and tag it" do
-    event = 
+    event =
       %Event{
         Event: %EventInfo{
           info: "my event",
           Attribute: [%Attribute{value: "8.8.8.8", type: "ip-dst"}]
-      }}
+        }
+      }
       |> MISP.Event.create()
 
     event_id = get_in(event, [:Event, :id])
@@ -122,18 +131,18 @@ defmodule MISPTest do
     |> MISP.Attribute.add_tag(%MISP.Tag{name: "my tag"})
     |> MISP.Attribute.update()
 
-    tag_count = 
+    tag_count =
       MISP.Event.get(event_id)
       |> get_in([:Event, :Attribute])
       |> List.first()
       |> Map.get(:Tag)
-      |> Enum.count() 
+      |> Enum.count()
 
     assert 1 == tag_count
 
     event =
       %Event{
-        Event: %EventInfo{        
+        Event: %EventInfo{
           info: "my event",
           Attribute: [
             %Attribute{
@@ -143,17 +152,18 @@ defmodule MISPTest do
             }
           ]
         }
-      }             
+      }
       |> MISP.Event.create()
-                     
+
     event_id = get_in(event, [:Event, :id])
+
     tag_count =
       MISP.Event.get(event_id)
       |> get_in([:Event, :Attribute])
       |> List.first()
       |> Map.get(:Tag)
-      |> Enum.count() 
- 
+      |> Enum.count()
+
     assert 1 == tag_count
   end
 end
