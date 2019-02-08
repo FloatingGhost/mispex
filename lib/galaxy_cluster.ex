@@ -1,4 +1,8 @@
 defmodule MISP.GalaxyCluster do
+  @moduledoc """
+  A Galaxy Cluster, usually only appears within a galaxy
+  """
+
   use TypedStruct
 
   typedstruct do

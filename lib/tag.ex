@@ -1,6 +1,6 @@
 defmodule MISP.Tag do
   @moduledoc """
-  Create and delete tags for both events and attributes
+  A tag attached to an object, usually an event or attribute
   """
 
   alias MISP.{
@@ -24,6 +24,11 @@ defmodule MISP.Tag do
     %MISP.Tag{}
   end
 
+  @doc """
+  Either create a new tag or retrieve the representation of an already-existing tag
+
+      iex> MISP.Tag.create(%MISP.Tag{name: "my tag"})
+  """
   def create(%Tag{} = tag) do
     HTTP.post("/tags/add", tag, %{"Tag" => decoder})
     |> Map.get("Tag")

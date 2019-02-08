@@ -1,6 +1,6 @@
 defmodule MISP.Attribute do
   @moduledoc """
-  Represents an Attribute, usually attached to an event
+  An Attribute, usually attached to an event
 
   Common usage would be:
 

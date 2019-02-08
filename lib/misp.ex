@@ -1,6 +1,4 @@
 defmodule MISP do
-  require Logger
-
   @moduledoc """
   An elixir binding for MISP's API, using mainly typed structs
 
@@ -20,6 +18,8 @@ defmodule MISP do
         }
       }
   """
+
+  require Logger
 
   alias MISP.{
     Event,

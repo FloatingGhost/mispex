@@ -11,14 +11,14 @@ by adding `mispex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:mispex, "~> 0.1.4"}
+    {:mispex, "~> 0.1.5"}
   ]
 end
 ```
 
 ## Configuration
 
-In your application config, add config of the format
+In your application config, add a block of the format
 
 ```elixir
 config :mispex,
@@ -26,15 +26,12 @@ config :mispex,
   apikey: "myapikey"
 ```
 
-
-## Documentation
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/mispex](https://hexdocs.pm/mispex/MISP.html).
-
-
 ## Usage
+
+See [the full documentation](https://hexdocs.pm/mispex/MISP.html) for full reference,
+but here are a few common usage examples
+
+Documentation can also be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 
 ### Create an event
 
@@ -69,6 +66,34 @@ MISP.Event.get(17)
 ```elixir
 MISP.Event.get(17)
 |> MISP.Event.add_tag(%MISP.Tag{name: "my tag"})
+|> MISP.Event.update()
 ```
 
+### Tag an attribute
 
+```elixir
+MISP.Attribute.search(%{value: "8.8.8.8"})
+|> List.first() 
+|> MISP.Attribute.add_tag(%MISP.Tag{name: "my tag"})
+|> MISP.Attribute.update()
+```
+
+### Create an event with attributes and tags already applied
+
+```elixir
+%MISP.EventInfo{
+    info: "my event",
+    Attribute: [
+        %MISP.Attribute{
+            value: "8.8.8.8",
+            type: "ip-dst",
+            Tag: [
+                %MISP.Tag{name: "my attribute-level tag"}
+            ]
+        }
+    ],
+    Tag: [
+        %MISP.Tag{name: "my event-level tag"}
+    ]
+} |> MISP.Event.create()
+```

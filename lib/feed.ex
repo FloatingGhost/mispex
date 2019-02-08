@@ -1,6 +1,6 @@
 defmodule MISP.Feed do
   @moduledoc """
-  Represents a Feed object
+  A way to add data to MISP from an external source
 
     iex> MISP.Feed.list()
     [

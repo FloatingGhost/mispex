@@ -1,6 +1,6 @@
 defmodule MISP.Event do
   @moduledoc """
-  Represents an event within MISP
+  An event within MISP
 
   Common usage:
 

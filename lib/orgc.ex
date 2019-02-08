@@ -1,4 +1,10 @@
 defmodule MISP.Orgc do
+  @moduledoc """
+  The source organisation for an event
+
+  Apparently not the same as MISP.Org, although they have
+  the same fields. Weird.
+  """
   use TypedStruct
 
   typedstruct do

@@ -1,4 +1,8 @@
 defmodule MISP.Org do
+  @moduledoc """
+  An organisation within MISP
+  """
+
   use TypedStruct
 
   typedstruct do

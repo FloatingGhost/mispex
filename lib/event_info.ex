@@ -1,6 +1,6 @@
 defmodule MISP.EventInfo do
   @moduledoc """
-  Represents the inner block in the MISP Event JSON
+  The inner block in the MISP Event schema
 
   Exists because MISP's schema looks like
 
