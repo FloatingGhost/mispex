@@ -7,6 +7,12 @@ defmodule MISPTest do
     Attribute
   }
 
+  setup do
+    on_exit(fn ->
+      MISP.Event.search(%{eventinfo: "my event"}) |> MISP.Event.delete()
+    end)
+  end
+
   test "create event" do
     %Event{Event: %EventInfo{info: "my event"}} =
       %Event{Event: %EventInfo{info: "my event"}}
@@ -50,5 +56,20 @@ defmodule MISPTest do
       |> MISP.Event.add_attribute(attrs)
 
     assert Enum.count(attributes) == 2
+  end
+
+  test "delete multiple events" do
+    event_info =
+      :crypto.strong_rand_bytes(20)
+      |> Base.url_encode64()
+
+    Enum.map(1..10, fn x -> Event.create(%EventInfo{info: event_info}) end)
+
+    deleted_count =
+      MISP.Event.search(%{eventinfo: event_info})
+      |> MISP.Event.delete()
+      |> Enum.count(fn x -> x["message"] == "Event deleted." end)
+
+    assert 10 == deleted_count
   end
 end

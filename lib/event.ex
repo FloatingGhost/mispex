@@ -17,7 +17,7 @@ defmodule MISP.Event do
   use TypedStruct
 
   typedstruct do
-    field :Event, EventInfo.t()
+    field :Event, EventInfo.t(), default: %EventInfo{info: "mispex event"}
   end
 
   use Accessible
@@ -160,6 +160,24 @@ defmodule MISP.Event do
     |> Enum.reduce(event, fn attr, acc -> Event.add_attribute(acc, attr) end)
   end
 
+  @doc """
+  Search for events
+
+      iex> MISP.Event.search(%{eventinfo: "my event"})
+      [
+        %MISP.Event{
+          Event: %MISP.EventInfo{
+            info: "my event"
+          }
+        }
+      ]
+
+  Valid search keys are listed on MISP's documentation, this section may be out of date
+
+  page, limit, value, type, category, org, tag, tags, searchall, from, to, last,
+  eventid, withAttachments, metadata, uuid, published, publish_timestamp, timestamp,
+  enforceWarninglist, sgReferenceOnly, eventinfo
+  """
   def search(%{} = params) do
     search_base = %{
       returnFormat: "json"
@@ -190,23 +208,31 @@ defmodule MISP.Event do
           ]
         }
       }
+
+  Can also be used on not-yet-created events to add them to your event representation to do everything
+  in a single HTTP call
+
+      iex> %MISP.Event{} |> MISP.Event.add_tag(%MISP.Tag{name: "my tag"}) |> MISP.Event.create()
   """
-  def add_tag(event, %Tag{} = tag) do
-    with %Event{} = event <- wrap(event) do
-      tag =
-        tag
-        |> MISP.Tag.create()
-
-      new_tags =
-        event
-        |> get_in([:Event, :Tag])
-        |> List.insert_at(0, tag)
-
+  def add_tag(%Event{Event: %EventInfo{id: event_id}} = event, %Tag{} = tag)
+      when is_binary(event_id) do
+    new_tags =
       event
-      |> put_in([:Event, :Tag], new_tags)
-      |> Event.update()
-    else
-      err -> raise ArgumentError, err
-    end
+      |> get_in([:Event, :Tag])
+      |> List.insert_at(0, tag)
+
+    event
+    |> put_in([:Event, :Tag], new_tags)
+    |> update()
+  end
+
+  def add_tag(%Event{Event: %EventInfo{id: nil}} = event, %Tag{} = tag) do
+    new_tags =
+      event
+      |> get_in([:Event, :Tag])
+      |> List.insert_at(0, tag)
+
+    event
+    |> put_in([:Event, :Tag], new_tags)
   end
 end

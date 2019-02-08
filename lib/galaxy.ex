@@ -12,7 +12,7 @@ defmodule MISP.Galaxy do
     field :type, String.t()
     field :description, String.t()
     field :version, String.t()
-    field :GalaxyCluster, list(GalaxyCluster.t())
+    field :GalaxyCluster, list(GalaxyCluster.t()), default: []
   end
 
   def decoder do
