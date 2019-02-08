@@ -95,11 +95,20 @@ defmodule MISP.Event do
   """
   def update(event) do
     with %Event{Event: %EventInfo{id: event_id}} = event <- wrap(event) do
-      updated_event =
-        event
-        |> put_in([:Event, :timestamp], :os.system_time(:seconds))
+      current_time = 
+        :os.system_time(:seconds)
+        |> to_string()
 
-      HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
+      unless get_in(event, [:Event, :timestamp]) == current_time do    
+        updated_event =
+          event
+          |> put_in([:Event, :timestamp], current_time)
+
+        HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
+      else
+        Process.sleep(1000)
+        update(event)
+      end
     else
       err -> raise ArgumentError, err
     end
@@ -115,7 +124,7 @@ defmodule MISP.Event do
           "url" => "/events/delete/16"
       }
   """
-  def delete(%Event{Event: %EventInfo{id: event_id}} = event) do
+  def delete(%Event{Event: %EventInfo{id: event_id}}) do
     HTTP.delete("/events/#{event_id}")
   end
 
@@ -209,13 +218,12 @@ defmodule MISP.Event do
         }
       }
 
-  Can also be used on not-yet-created events to add them to your event representation to do everything
-  in a single HTTP call
+  This will not save your event immediately (otherwise we end up in timestamp hell if you
+  want to do a load at once), so make sure you call update() once you've added your tags
 
-      iex> %MISP.Event{} |> MISP.Event.add_tag(%MISP.Tag{name: "my tag"}) |> MISP.Event.create()
+      iex> MISP.Event.get(24) |> MISP.Event.add_tag(%MISP.Tag{name: "test"}) |> MISP.Event.update()
   """
-  def add_tag(%Event{Event: %EventInfo{id: event_id}} = event, %Tag{} = tag)
-      when is_binary(event_id) do
+  def add_tag(%Event{} = event, %Tag{} = tag) do
     new_tags =
       event
       |> get_in([:Event, :Tag])
@@ -223,16 +231,11 @@ defmodule MISP.Event do
 
     event
     |> put_in([:Event, :Tag], new_tags)
-    |> update()
   end
 
-  def add_tag(%Event{Event: %EventInfo{id: nil}} = event, %Tag{} = tag) do
-    new_tags =
-      event
-      |> get_in([:Event, :Tag])
-      |> List.insert_at(0, tag)
-
+  def add_tag(%EventInfo{} = event, tag) do
     event
-    |> put_in([:Event, :Tag], new_tags)
+    |> wrap()
+    |> add_tag(tag)
   end
 end

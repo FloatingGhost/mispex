@@ -77,19 +77,26 @@ defmodule MISP.Attribute do
   Update an event with new values
   """
   def update(%Attribute{} = attribute) do
-    updated_attr =
-      attribute
-      |> Map.put(:timestamp, :os.system_time(:seconds))
+    current_time = 
+        :os.system_time(:seconds)
+        |> to_string()
 
-    IO.inspect(updated_attr)
+    unless attribute.timestamp == current_time do
+        updated_attr =
+          attribute
+          |> Map.put(:timestamp, current_time)
 
-    HTTP.post(
-      "/attributes/edit/#{updated_attr.id}",
-      updated_attr,
-      %{"response" => %{"Attribute" => Attribute.decoder()}}
-    )
-    |> Map.get("response")
-    |> Map.get("Attribute")
+        HTTP.post(
+          "/attributes/edit/#{updated_attr.id}",
+          updated_attr,
+          %{"response" => %{"Attribute" => Attribute.decoder()}}
+        )
+        |> Map.get("response")
+        |> Map.get("Attribute")
+    else
+        Process.sleep(1000)
+        update(attribute)
+    end
   end
 
   @doc """
@@ -136,7 +143,8 @@ defmodule MISP.Attribute do
   end
 
   @doc """
-  Add a tag to an attribute
+  Add a tag to an attribute. This will not save your event immediately, so you
+  can add as many as you'd like and then call MISP.Event.update()
 
       iex> MISP.Attribute.add_tag(%MISP.Attribute{}, %MISP.Tag{name: "my tag"})
       %MISP.Attribute{

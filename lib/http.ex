@@ -112,6 +112,10 @@ defmodule MISP.HTTP do
     "#{key_string}: #{error_string}"
   end
 
+  defp format_misp_error(errors, _) when is_binary(errors) do
+    errors
+  end
+
   defp check_for_error(%{"errors" => errors}) do
     error_string = format_misp_error(errors)
 
