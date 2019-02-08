@@ -5,7 +5,7 @@ defmodule MISP.Attribute do
   Common usage would be:
 
       16
-      MISP.Event.get()
+      |> MISP.Event.get()
       |> Map.get(:Attribute)
       |> List.first()
       |> MISP.Attribute.delete()
