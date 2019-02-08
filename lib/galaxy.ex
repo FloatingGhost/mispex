@@ -2,7 +2,9 @@ defmodule MISP.Galaxy do
   use TypedStruct
 
   alias MISP.{
-    GalaxyCluster
+    Galaxy,
+    GalaxyCluster,
+    HTTP
   }
 
   typedstruct do
@@ -19,5 +21,21 @@ defmodule MISP.Galaxy do
     %MISP.Galaxy{
       GalaxyCluster: [GalaxyCluster.decoder()]
     }
+  end
+
+  def list do
+    "/galaxies/"
+    |> HTTP.get([%{"Galaxy" => Galaxy.decoder()}])
+    |> Enum.map(fn x -> Map.get(x, "Galaxy") end)
+  end
+
+  def get(id) do
+    resp =
+      "/galaxies/view/#{id}"
+      |> HTTP.get(%{"Galaxy" => Galaxy.decoder(), "GalaxyCluster" => [GalaxyCluster.decoder()]})
+
+    resp
+    |> Map.get("Galaxy")
+    |> Map.put(:GalaxyCluster, Map.get(resp, "GalaxyCluster"))
   end
 end

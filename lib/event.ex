@@ -53,16 +53,66 @@ defmodule MISP.Event do
     }
   end
 
+  @doc """
+  List the metadata for all events currently in MISP.
+  Potentially expensive in memory and time.
+
+  I advise using MISP.Event.list/1 where you can, to not return literally everything
+
+      iex> MISP.Event.list()
+      [
+        %MISP.Event{
+          Event: %MISP.EventInfo{}
+        }
+      ]
+  """
+  def list do
+    HTTP.get("/events/index", [EventInfo.decoder()])
+    |> Enum.map(fn x -> %Event{Event: x} end)
+  end
+
+  @doc """
+  List the metadata for all events matching some criteria
+
+  At the time of writing, valid parameters are as follows
+
+  all, attribute, published, eventid, datefrom, dateuntil, org,
+  eventinfo, tag, tags, distribution, sharinggroup, analysis, threatlevel,
+  email, hasproposal, timestamp, publishtimestamp, publish_timestamp,
+  minimal
+
+      iex> MISP.Event.list(%{eventid: 67})
+      [
+        %MISP.Event{
+          Event: %MISP.EventInfo{
+            id: "67"
+          }
+        }
+      ]
+  """
+  def list(%{} = params) do
+    HTTP.post("/events/index", params, [EventInfo.decoder()])
+    |> Enum.map(fn x -> %Event{Event: x} end)
+  end
+
+  @doc """
+  Get a single event with the specified ID
+
+      iex>  MISP.Event.get(76)
+      %MISP.Event{
+        Event: %MISP.EventInfo{
+          id: "76"
+        }
+      }
+  """
   def get(id) when is_integer(id) or is_binary(id) do
     HTTP.get("/events/#{id}", Event.decoder())
   end
 
-  def get(%Event{} = event), do: event
-
   @doc """
   Create a new event.
-  Mandatory fields: info
-  Can be given either an Event or an EventInfo object
+
+  Wrapping a MISP.EventInfo struct in a MISP.Event struct isn't required
 
       iex> MISP.Event.create(%MISP.EventInfo{info: "hello world!"})
       %MISP.Event{
@@ -84,7 +134,6 @@ defmodule MISP.Event do
 
   @doc """
   Update an event
-  Will update the event's timestamp and push the result
 
       iex> MISP.Event.get(16) |> put_in([:Event, :info], "new info!") |> MISP.Event.update()
       %MISP.Event{
@@ -95,20 +144,10 @@ defmodule MISP.Event do
   """
   def update(event) do
     with %Event{Event: %EventInfo{id: event_id}} = event <- wrap(event) do
-      current_time =
-        :os.system_time(:seconds)
-        |> to_string()
-
-      unless get_in(event, [:Event, :timestamp]) >= current_time do
-        updated_event =
-          event
-          |> put_in([:Event, :timestamp], current_time)
-
-        HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
-      else
-        Process.sleep(500)
-        update(event)
-      end
+      # Trust me, setting timestamp to nil is FAR easier than trying to handle
+      # updating it
+      updated_event = put_in(event, [:Event, :timestamp], nil)
+      HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
     else
       err -> raise ArgumentError, err
     end

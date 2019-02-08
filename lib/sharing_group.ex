@@ -3,14 +3,16 @@ defmodule MISP.SharingGroup do
 
   alias MISP.{
     Org,
+    SharingGroup,
     SharingGroupOrg,
-    SharingGroupServer
+    SharingGroupServer,
+    HTTP
   }
 
   typedstruct do
     field :id, String.t()
-    field :name, String.t()
-    field :releasability, String.t()
+    field :name, String.t(), default: "default name"
+    field :releasability, String.t(), default: "default sharability"
     field :description, String.t()
     field :uuid, String.t()
     field :organisation_uuid, String.t()
@@ -32,5 +34,16 @@ defmodule MISP.SharingGroup do
       SharingGroupOrg: [SharingGroupOrg.decoder()],
       SharingGroupServer: [SharingGroupServer.decoder()]
     }
+  end
+
+  def list do
+    "/sharing_groups/"
+    |> HTTP.get(%{"response" => [decoder()]})
+    |> Map.get("response")
+  end
+
+  def create(%SharingGroup{} = sharing_group) do
+    "/sharing_groups/add"
+    |> HTTP.post(sharing_group)
   end
 end
