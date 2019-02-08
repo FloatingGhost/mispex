@@ -14,6 +14,10 @@ defmodule MISPTest do
     end)
   end
 
+  test "connection test" do
+    "2.4." <> _ = MISP.test_connection()
+  end
+
   test "create event" do
     %Event{Event: %EventInfo{info: "my event"}} =
       %Event{Event: %EventInfo{info: "my event"}}

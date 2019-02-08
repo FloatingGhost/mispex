@@ -8,17 +8,17 @@ defmodule MISP do
 
   A basic event creation and attribute adding flow would look like so
 
-      iex> my_event = %MISP.EventInfo{info: "yui is best yuru"}
-      iex> created_event = MISP.Event.create(my_event)
-      iex> my_attribute = %MISP.Attribute{value: "8.8.8.8", type: "ip-dst"}
-      iex> MISP.Event.add_attribute(created_event, my_attribute)
-
-  Or if you want to be really fancy and pipe things around the place you
-  can go more like this
-
-      %MISP.EventInfo{info: "yui is best yuru"}
-      |> MISP.Event.create()
-      |> MISP.Event.add_attribute(%MISP.Attribute{value: "8.8.8.8", type: "ip-dst"})
+      iex> my_event = %MISP.EventInfo{
+      ...>   info: "yui is best yuru",
+      ...>   Attribute: [
+      ...>     %MISP.Attribute{value: "8.8.8.8", type: "ip-dst"}
+      ...>   ]
+      ...> } |> MISP.Event.create()
+      %MISP.Event{
+        Event: %MISP.EventInfo{
+          info: "yui is best yuru",
+        }
+      }
   """
 
   alias MISP.{

@@ -4,10 +4,12 @@ defmodule MISP.Attribute do
 
   Common usage would be:
 
-      iex> MISP.Event.get(16) |> Map.get(:Attribute) |> List.first() |> MISP.Attribute.delete()
+      16
+      MISP.Event.get()
+      |> Map.get(:Attribute)
+      |> List.first()
+      |> MISP.Attribute.delete()
   """
-
-  use TypedStruct
 
   alias MISP.{
     SharingGroup,
@@ -17,6 +19,8 @@ defmodule MISP.Attribute do
     EventInfo,
     HTTP
   }
+
+  use TypedStruct
 
   typedstruct do
     field :id, String.t()
@@ -81,12 +85,12 @@ defmodule MISP.Attribute do
       |> Map.put(:value, "2.2.2.2")
       |> MISP.Attribute.update()
   """
-  def update(%Attribute{} = attribute) do
+  def update(%Attribute{id: id} = attribute) do
     # Remove timestamp, as it causes MASSIVE headaches if it's wrong
     updated_attr = Map.put(attribute, :timestamp, nil)
 
-    HTTP.post(
-      "/attributes/edit/#{updated_attr.id}",
+    "/attributes/edit/#{id}"
+    |> HTTP.post(
       updated_attr,
       %{"response" => %{"Attribute" => Attribute.decoder()}}
     )
@@ -128,8 +132,8 @@ defmodule MISP.Attribute do
       search_base
       |> Map.merge(params)
 
-    HTTP.post(
-      "/attributes/restSearch",
+    "/attributes/restSearch"
+    |> HTTP.post(
       search_params,
       %{"response" => %{"Attribute" => [Attribute.decoder()]}}
     )
@@ -183,7 +187,6 @@ defmodule MISP.Attribute do
 
     "successfully removed" =~ message
 
-    attribute
-    |> Map.put(:Tag, Enum.filter(tags, fn x -> x.name != name end))
+    Map.put(attribute, :Tag, Enum.filter(tags, fn x -> x.name != name end))
   end
 end
