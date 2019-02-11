@@ -11,7 +11,7 @@ by adding `mispex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:mispex, "~> 0.1.5"}
+    {:mispex, "~> 0.1.6"}
   ]
 end
 ```
