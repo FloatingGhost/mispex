@@ -30,6 +30,13 @@ defmodule MISPTest.Event do
       |> MISP.Event.create()
   end
 
+  test "search for an event" do
+    %EventInfo{info: "my totally unique event"} |> MISP.Event.create()
+    matching = Event.search(%{eventinfo: "my totally unique event"})
+    assert Enum.count(matching) == 1
+    matching |> MISP.Event.delete()
+  end
+
   test "edit an event" do
     %Event{Event: %EventInfo{info: "my event"}} =
       %EventInfo{info: "not my event"}
