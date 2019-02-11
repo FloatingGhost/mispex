@@ -39,14 +39,16 @@ defmodule MISPTest.Attribute do
   test "search for an attribute" do
     unique_value = "this is a totally unique value!"
 
-    event = %EventInfo{
-      info: "my event",
-      Attribute: [%Attribute{value: unique_value, type: "text"}]
-    } |> MISP.Event.create()
+    event =
+      %EventInfo{
+        info: "my event",
+        Attribute: [%Attribute{value: unique_value, type: "text"}]
+      }
+      |> MISP.Event.create()
 
     matching = MISP.Attribute.search(%{value: unique_value})
     assert Enum.count(matching) == 1
 
     %Attribute{value: ^unique_value} = List.first(matching)
   end
-end  
+end

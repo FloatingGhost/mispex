@@ -1,5 +1,5 @@
 use Mix.Config
 
-config :mispex, 
+config :mispex,
   url: "http://localhost",
   apikey: "testmispapikeytestmispapikeytestmispapik"

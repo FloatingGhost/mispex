@@ -63,8 +63,12 @@ defmodule MISP.Tag do
       ]
   """
   def search(search_term) do
-    HTTP.post("/tags/search", %{tag: search_term}, [%{"Tag" => decoder()}])
-    |> Enum.map(fn x -> Map.get(x, "Tag") end)
+    if MISP.get_version() <= "2.4.102" do
+      raise MISP.Errors.VersionMismatchError, "Tag search implemented in v2.4.103"
+    else
+      HTTP.post("/tags/search", %{tag: search_term}, [%{"Tag" => decoder()}])
+      |> Enum.map(fn x -> Map.get(x, "Tag") end)
+    end
   end
 
   @doc """
@@ -78,7 +82,7 @@ defmodule MISP.Tag do
       }
   """
   def delete(%Tag{id: tag_id} = tag) do
-    with %{"message" => "Tag deleted."} = resp <-HTTP.post("/tags/delete/#{tag_id}", %{}, nil) do
+    with %{"message" => "Tag deleted."} = resp <- HTTP.post("/tags/delete/#{tag_id}", %{}, nil) do
       resp
     else
       err -> raise MISP.Errors.ServerException, Map.get(err, "message")

@@ -16,6 +16,6 @@ defmodule MISPTest.Base do
   end
 
   test "connection test" do
-    "2.4." <> _ = MISP.test_connection()
+    "2.4." <> _ = MISP.get_version()
   end
 end

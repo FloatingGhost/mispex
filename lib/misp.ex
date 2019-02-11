@@ -50,10 +50,10 @@ defmodule MISP do
   Get the current version of MISP running on the server we're configured
   to connect to
 
-      iex> MISP.test_connection()
+      iex> MISP.get_version()
       "2.4.102"
   """
-  def test_connection do
+  def get_version do
     version_info =
       HTTP.get("/servers/getVersion.json")
       |> Map.get("version")

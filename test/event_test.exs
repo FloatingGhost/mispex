@@ -15,7 +15,6 @@ defmodule MISPTest.Event do
     end)
   end
 
-
   test "create event" do
     my_event =
       %Event{Event: %EventInfo{info: "my event"}}
@@ -151,5 +150,4 @@ defmodule MISPTest.Event do
 
     assert 1 == tag_count
   end
-
 end
