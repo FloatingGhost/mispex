@@ -1,0 +1,15 @@
+language: elixir
+
+elixir: "1.8"
+
+services:
+- floatingghost/misp-testable:v2.4.102
+
+install:
+    - mix local.rebar --force
+    - mix local.hex --force
+    - mix deps.get 
+    - echo 'config :mispex,\n  url: "http://misp-testable",\n  apikey: "testmispapikeytestmispapikeytestmispapik' > config/test.exs
+
+script:
+    - MIX_ENV=test mix test
