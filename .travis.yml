@@ -6,11 +6,15 @@ env:
   - MIX_ENV=test
 
 services:
-  - floatingghost/misp-testable:v2.4.102
+  - docker
+
+before_install:
+  - docker pull floatingghost/misp-testable:v2.4.102
+  - docker run -d -p 80:80 floatingghost/misp-testable:v2.4.102
 
 install:
   - >-
-    echo 'config :mispex,\n  url: "http://misp-testable",\n  apikey: "testmispapikeytestmispapikeytestmispapik"' > config/test.exs
+    echo 'config :mispex,\n  url: "http://localhost",\n  apikey: "testmispapikeytestmispapikeytestmispapik"' > config/test.exs
   - mix local.rebar --force
   - mix local.hex --force
   - mix deps.get 
