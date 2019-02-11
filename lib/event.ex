@@ -211,6 +211,8 @@ defmodule MISP.Event do
   @doc """
   Search for events
 
+  Sets a default limit of 100
+
       iex> MISP.Event.search(%{eventinfo: "my event"})
       [
         %MISP.Event{
@@ -228,7 +230,9 @@ defmodule MISP.Event do
   """
   def search(%{} = params) do
     search_base = %{
-      returnFormat: "json"
+      returnFormat: "json",
+      limit: "100",
+      page: "0"
     }
 
     search_params =

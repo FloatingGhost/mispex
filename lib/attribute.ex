@@ -115,6 +115,8 @@ defmodule MISP.Attribute do
   @doc """
   Search for attributes
 
+  Will set a default limit of 100 unless overridden via the limit parameter
+
       iex> MISP.Attribute.search(%{value: "1.1.1.1"})
       [
         %MISP.Attribute{
@@ -125,7 +127,9 @@ defmodule MISP.Attribute do
   """
   def search(%{} = params) do
     search_base = %{
-      returnFormat: "json"
+      returnFormat: "json",
+      limit: "100",
+      page: "0"
     }
 
     search_params =
