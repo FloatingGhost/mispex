@@ -13,8 +13,7 @@ before_install:
   - docker run -d -p 80:80 floatingghost/misp-testable:v2.4.102
 
 install:
-  - >-
-    echo "use Mix.Config \n\nconfig :mispex, url: \"http://localhost\", apikey: \"testmispapikeytestmispapikeytestmispapik\"" > config/test.exs
+  - cp config/travis.exs config/test.exs
   - mix local.rebar --force
   - mix local.hex --force
   - mix deps.get 
