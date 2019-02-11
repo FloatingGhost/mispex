@@ -67,8 +67,10 @@ defmodule MISP.Event do
       ]
   """
   def list do
-    HTTP.get("/events/index", [EventInfo.decoder()])
-    |> Enum.map(fn x -> %Event{Event: x} end)
+    case HTTP.get("/events/index", [EventInfo.decoder()]) do
+      {:ok, event_list} -> Enum.map(event_list, fn x -> %Event{Event: x} end)
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -91,8 +93,10 @@ defmodule MISP.Event do
       ]
   """
   def list(%{} = params) do
-    HTTP.post("/events/index", params, [EventInfo.decoder()])
-    |> Enum.map(fn x -> %Event{Event: x} end)
+    case HTTP.post("/events/index", params, [EventInfo.decoder()]) do
+      {:ok, event_list} -> Enum.map(event_list, fn x -> %Event{Event: x} end)
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -106,7 +110,10 @@ defmodule MISP.Event do
       }
   """
   def get(id) when is_integer(id) or is_binary(id) do
-    HTTP.get("/events/#{id}", Event.decoder())
+    case HTTP.get("/events/#{id}", Event.decoder()) do
+      {:ok, event} -> event
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -124,12 +131,17 @@ defmodule MISP.Event do
           }
       }
   """
-  def create(event) do
-    with %Event{} = event <- wrap(event) do
-      HTTP.post("/events/add", event, MISP.Event.decoder())
-    else
-      err -> raise ArgumentError, err
+  def create(%Event{} = event) do
+    case HTTP.post("/events/add", event, MISP.Event.decoder()) do
+      {:ok, event} -> event
+      {:error, reason} -> {:error, reason}
     end
+  end
+
+  def create(%EventInfo{} = event_info) do
+    event_info
+    |> wrap()
+    |> create()
   end
 
   @doc """
@@ -142,15 +154,15 @@ defmodule MISP.Event do
         }
       }
   """
-  def update(event) do
-    with %Event{Event: %EventInfo{id: event_id}} = event <- wrap(event) do
+  def update(%Event{Event: %EventInfo{id: event_id}} = event) do
       # Trust me, setting timestamp to nil is FAR easier than trying to handle
       # updating it
       updated_event = put_in(event, [:Event, :timestamp], nil)
-      HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
-    else
-      err -> raise ArgumentError, err
-    end
+
+      case HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder()) do
+        {:ok, event} -> event
+        {:error, reason} -> {:error, reason}
+      end
   end
 
   @doc """

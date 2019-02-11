@@ -96,4 +96,17 @@ MISP.Attribute.search(%{value: "8.8.8.8"})
         %MISP.Tag{name: "my event-level tag"}
     ]
 } |> MISP.Event.create()
+
+### Errors
+
+Error cases are returned wrapped in a tuple like so
+
+```elixir
+iex(1)> %MISP.EventInfo{} |> MISP.Event.create 
+{:error,
+ [
+   code: 403,
+   reason: "{\n    \"name\": \"Could not add Event\",\n    \"message\": \"Could not add Event\",\n    \"url\": \"\\/events\\/add\",\n    \"errors\": {\n        \"Event\": {\n            \"info\": [\n                \"Info cannot be empty.\"\n            ]\n        }\n    }\n}"
+ ]}
+
 ```

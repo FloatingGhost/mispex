@@ -74,7 +74,10 @@ defmodule MISP.Attribute do
       }
   """
   def create(%Event{Event: %EventInfo{id: event_id}}, %Attribute{} = attribute) do
-    HTTP.post("/attributes/add/#{event_id}", attribute, Attribute.decoder())
+    case HTTP.post("/attributes/add/#{event_id}", attribute, Attribute.decoder()) do
+      {:ok, created} -> created
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -89,13 +92,12 @@ defmodule MISP.Attribute do
     # Remove timestamp, as it causes MASSIVE headaches if it's wrong
     updated_attr = Map.put(attribute, :timestamp, nil)
 
-    "/attributes/edit/#{id}"
-    |> HTTP.post(
-      updated_attr,
-      %{"response" => %{"Attribute" => Attribute.decoder()}}
-    )
-    |> Map.get("response")
-    |> Map.get("Attribute")
+    
+    case HTTP.post("/attributes/edit/#{id}", updated_attr, %{"response" => %{"Attribute" => Attribute.decoder()}}) do
+      {:ok, updated} -> updated |> Map.get("response") |> Map.get("Attribute")
+      {:error, reason} -> {:error, reason}
+    end
+
   end
 
   @doc """
