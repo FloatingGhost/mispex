@@ -84,10 +84,10 @@ defmodule MISP.HTTP do
         {:ok, body}
 
       {:ok, %HTTPoison.Response{status_code: code, body: body}} ->
-        {:error, code: code, reason: body}
+        {:error, body, code: code}
 
       {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, reason: "HTTP Error #{reason}"}
+        {:error, "HTTP Error #{reason}"}
     end
   end
 
@@ -100,7 +100,7 @@ defmodule MISP.HTTP do
 
       {:ok, _} -> {:ok, Poison.decode!(body, as: decode_as)}
 
-      {:error, {reason, _, _}} -> {:error, reason: reason}
+      {:error, {reason, _, _}} -> {:error, reason}
     end
   end
 

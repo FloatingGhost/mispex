@@ -24,12 +24,12 @@ defmodule MISP.Server do
   List all servers known by MISP
 
       iex> MISP.Server.list()
-      [
+      {:ok, [
         %MISP.Server{
           id: "1",
           url: "https://example.com"
         }
-      ]
+      ]}
   """
   def list do
     HTTP.get("/servers/", [Server.decoder()])

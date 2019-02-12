@@ -31,11 +31,13 @@ defmodule MISP.Tag do
   @doc """
   Either create a new tag or retrieve the representation of an already-existing tag
 
-      iex> MISP.Tag.create(%MISP.Tag{name: "my tag"})
+      iex> {:ok, my_tag} = MISP.Tag.create(%MISP.Tag{name: "my tag"})
   """
   def create(%Tag{} = tag) do
-    HTTP.post("/tags/add", tag, %{"Tag" => decoder})
-    |> Map.get("Tag")
+    case HTTP.post("/tags/add", tag, %{"Tag" => decoder}) do
+      {:ok, resp} -> {:ok, Map.get(resp, "Tag")}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -44,15 +46,17 @@ defmodule MISP.Tag do
       iex> MISP.Tag.get(1) |> Map.put(:name, "my new name") |> MISP.Tag.update()
   """
   def update(%Tag{id: tag_id} = tag) do
-    HTTP.post("/tags/edit/#{tag_id}", %{Tag: tag}, %{"Tag" => decoder()})
-    |> Map.get("Tag")
+    case HTTP.post("/tags/edit/#{tag_id}", %{Tag: tag}, %{"Tag" => decoder()}) do
+      {:ok, resp} -> {:ok, Map.get(resp, "Tag")}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Search for tags. Use % for wildcard
 
       iex> MISP.Tag.search("%tag")
-      [
+      {:ok, [
         %MISP.Tag{
           colour: "#373f7b",
           exportable: true,
@@ -60,14 +64,12 @@ defmodule MISP.Tag do
           id: "3",
           name: "my tag"
         }
-      ]
+      ]}
   """
   def search(search_term) do
-    if MISP.get_version() <= "2.4.102" do
-      raise MISP.Errors.VersionMismatchError, "Tag search implemented in v2.4.103"
-    else
-      HTTP.post("/tags/search", %{tag: search_term}, [%{"Tag" => decoder()}])
-      |> Enum.map(fn x -> Map.get(x, "Tag") end)
+    case HTTP.post("/tags/search", %{tag: search_term}, [%{"Tag" => decoder()}]) do
+      {:ok, list} -> {:ok, Enum.map(list, fn x -> Map.get(x, "Tag") end)}
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -75,18 +77,16 @@ defmodule MISP.Tag do
   Delete a tag
 
       iex> MISP.Tag.delete(%MISP.Tag{id: 3})
-      %{
+      {:ok, 
+       %{
         "message" => "Tag deleted.",
         "name" => "Tag deleted.", 
         "url" => "/tags/delete/3"
+       }
       }
   """
   def delete(%Tag{id: tag_id} = tag) do
-    with %{"message" => "Tag deleted."} = resp <- HTTP.post("/tags/delete/#{tag_id}", %{}, nil) do
-      resp
-    else
-      err -> raise MISP.Errors.ServerException, Map.get(err, "message")
-    end
+    HTTP.post("/tags/delete/#{tag_id}", %{}, nil)
   end
 
   @doc """

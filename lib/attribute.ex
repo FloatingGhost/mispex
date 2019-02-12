@@ -67,17 +67,16 @@ defmodule MISP.Attribute do
 
       iex> event = %MISP.Event{%MISP.EventInfo{id: 1}}
       iex> MISP.Attribute.Create(event, %MISP.Attribute{value: "8.8.8.8", type: "ip-dst"})
-      %MISP.Attribute{
+      {:ok,
+       %MISP.Attribute{
           value: "8.8.8.8",
           type: "ip-dst",
           uuid: "...."
+       }
       }
   """
   def create(%Event{Event: %EventInfo{id: event_id}}, %Attribute{} = attribute) do
-    case HTTP.post("/attributes/add/#{event_id}", attribute, Attribute.decoder()) do
-      {:ok, created} -> created
-      {:error, reason} -> {:error, reason}
-    end
+    HTTP.post("/attributes/add/#{event_id}", attribute, Attribute.decoder())
   end
 
   @doc """
@@ -94,7 +93,7 @@ defmodule MISP.Attribute do
 
     
     case HTTP.post("/attributes/edit/#{id}", updated_attr, %{"response" => %{"Attribute" => Attribute.decoder()}}) do
-      {:ok, updated} -> updated |> Map.get("response") |> Map.get("Attribute")
+      {:ok, updated} -> {:ok, updated |> Map.get("response") |> Map.get("Attribute")}
       {:error, reason} -> {:error, reason}
     end
 
@@ -120,12 +119,12 @@ defmodule MISP.Attribute do
   Will set a default limit of 100 unless overridden via the limit parameter
 
       iex> MISP.Attribute.search(%{value: "1.1.1.1"})
-      [
+      {:ok, [
         %MISP.Attribute{
           type: "ip-dst",
           value: "1.1.1.1"
         }
-      ]
+      ]}
   """
   def search(%{} = params) do
     search_base = %{
@@ -138,21 +137,18 @@ defmodule MISP.Attribute do
       search_base
       |> Map.merge(params)
 
-    "/attributes/restSearch"
-    |> HTTP.post(
-      search_params,
-      %{"response" => %{"Attribute" => [Attribute.decoder()]}}
-    )
-    |> Map.get("response")
-    |> Map.get("Attribute")
+    case HTTP.post("/attributes/restSearch", search_params, 
+      %{"response" => %{"Attribute" => [Attribute.decoder()]}}) do
+        {:ok, list} -> {:ok, list |> Map.get("response") |> Map.get("Attribute")}
+        {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
-  Add a tag to an attribute. This will not save your event immediately, so you
-  can add as many as you'd like and then call MISP.Event.update()
+  Add a tag to an attribute
 
       iex> MISP.Attribute.add_tag(%MISP.Attribute{}, %MISP.Tag{name: "my tag"})
-      %MISP.Attribute{
+      {:ok, %MISP.Attribute{
         Tag: [
           %MISP.Tag{
             colour: "#15c551",
@@ -162,19 +158,17 @@ defmodule MISP.Attribute do
             name: "my tag"
           }
         ]
-      }
+      }}
   """
   def add_tag(%Attribute{uuid: uuid} = attribute, %Tag{name: name} = tag) do
-    with %Tag{} = tag <- Tag.create(tag) do
-      %{"message" => message} =
-        HTTP.post("/tags/attachTagToObject", %{uuid: uuid, tag: name}, nil)
+    with {:ok, %Tag{} = tag} <- Tag.create(tag) do
+      case HTTP.post("/tags/attachTagToObject", %{uuid: uuid, tag: name}, nil) do
+        {:ok, _} -> {:ok, Map.put(attribute, :Tag, Map.get(attribute, :Tag) ++ [tag])}
+        {:error, reason} -> {:error, reason}
+      end
 
-      "successfully attached" =~ message
-
-      attribute
-      |> Map.put(:Tag, Map.get(attribute, :Tag) ++ [tag])
     else
-      err -> raise RuntimeError, "Could not create tag #{name}, #{err}"
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -188,11 +182,9 @@ defmodule MISP.Attribute do
       }
   """
   def remove_tag(%Attribute{uuid: uuid, Tag: tags} = attribute, %Tag{name: name}) do
-    %{"message" => message} =
-      HTTP.post("/tags/removeTagFromObject", %{uuid: uuid, tag: name}, nil)
-
-    "successfully removed" =~ message
-
-    Map.put(attribute, :Tag, Enum.filter(tags, fn x -> x.name != name end))
+    case HTTP.post("/tags/removeTagFromObject", %{uuid: uuid, tag: name}, nil) do
+      {:ok, _} -> {:ok, Map.put(attribute, :Tag, Enum.filter(tags, fn x -> x.name != name end))}
+      {:error, reason} -> {:error, reason}
+    end
   end
 end

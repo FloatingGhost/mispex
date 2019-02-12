@@ -48,25 +48,30 @@ defmodule MISP.Feed do
 
   @doc """
   Get all feeds
+
+      iex> {:ok, feeds} = MISP.Feed.list()
   """
   def list do
-    "/feeds/index"
-    |> HTTP.get([%{"Feed" => %Feed{}}])
-    |> Enum.map(fn x -> Map.get(x, "Feed") end)
+    case HTTP.get("/feeds/index", [%{"Feed" => %Feed{}}]) do
+      {:ok, list} -> {:ok, Enum.map(list, fn x -> Map.get(x, "Feed") end)}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Get a single feed with corresponding ID
+
+      iex> {:ok, feed} = MISP.Feed.get(1)
   """
   def get(id) do
-    "/feeds/view/#{id}"
-    |> HTTP.get(%{"Feed" => %Feed{}})
-    |> Map.get("Feed")
+    case HTTP.get("/feeds/view/#{id}", %{"Feed" => %Feed{}}) do
+      {:ok, resp} -> {:ok, Map.get(resp, "Feed")}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   # FIXME Gives a "request blackholed" error with no info
   def create(%Feed{} = feed) do
-    "/feeds/add"
-    |> HTTP.post(feed, nil)
+    HTTP.post("/feeds/add", feed, nil)
   end
 end

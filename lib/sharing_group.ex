@@ -37,13 +37,13 @@ defmodule MISP.SharingGroup do
   end
 
   def list do
-    "/sharing_groups/"
-    |> HTTP.get(%{"response" => [decoder()]})
-    |> Map.get("response")
+    case HTTP.get("/sharing_groups/", %{"response" => [decoder()]}) do
+      {:ok, resp} -> {:ok, Map.get(resp, "response")}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   def create(%SharingGroup{} = sharing_group) do
-    "/sharing_groups/add"
-    |> HTTP.post(sharing_group)
+    HTTP.post("/sharing_groups/add", sharing_group)
   end
 end

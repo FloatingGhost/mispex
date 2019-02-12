@@ -68,7 +68,7 @@ defmodule MISP.Event do
   """
   def list do
     case HTTP.get("/events/index", [EventInfo.decoder()]) do
-      {:ok, event_list} -> Enum.map(event_list, fn x -> %Event{Event: x} end)
+      {:ok, event_list} -> {:ok, Enum.map(event_list, fn x -> %Event{Event: x} end)}
       {:error, reason} -> {:error, reason}
     end
   end
@@ -94,7 +94,7 @@ defmodule MISP.Event do
   """
   def list(%{} = params) do
     case HTTP.post("/events/index", params, [EventInfo.decoder()]) do
-      {:ok, event_list} -> Enum.map(event_list, fn x -> %Event{Event: x} end)
+      {:ok, event_list} -> {:ok, Enum.map(event_list, fn x -> %Event{Event: x} end)}
       {:error, reason} -> {:error, reason}
     end
   end
@@ -103,17 +103,16 @@ defmodule MISP.Event do
   Get a single event with the specified ID
 
       iex>  MISP.Event.get(76)
-      %MISP.Event{
-        Event: %MISP.EventInfo{
-          id: "76"
-        }
+      {:ok, 
+       %MISP.Event{
+         Event: %MISP.EventInfo{
+           id: "76"
+         }
+       }
       }
   """
   def get(id) when is_integer(id) or is_binary(id) do
-    case HTTP.get("/events/#{id}", Event.decoder()) do
-      {:ok, event} -> event
-      {:error, reason} -> {:error, reason}
-    end
+    HTTP.get("/events/#{id}", Event.decoder())
   end
 
   @doc """
@@ -132,10 +131,7 @@ defmodule MISP.Event do
       }
   """
   def create(%Event{} = event) do
-    case HTTP.post("/events/add", event, MISP.Event.decoder()) do
-      {:ok, event} -> event
-      {:error, reason} -> {:error, reason}
-    end
+    HTTP.post("/events/add", event, MISP.Event.decoder())
   end
 
   def create(%EventInfo{} = event_info) do
@@ -159,10 +155,7 @@ defmodule MISP.Event do
       # updating it
       updated_event = put_in(event, [:Event, :timestamp], nil)
 
-      case HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder()) do
-        {:ok, event} -> event
-        {:error, reason} -> {:error, reason}
-      end
+      HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
   end
 
   @doc """
@@ -180,44 +173,43 @@ defmodule MISP.Event do
   end
 
   def delete(event) when is_list(event) do
-    event
-    |> Enum.map(fn x -> delete(x) end)
+    Enum.map(event, fn x -> delete(x) end)
   end
 
   @doc """
-  Create a new attribute and add it to our event object
+  Append attributes to our list. Requires an update or create call afterwards.
 
-      iex> event = %MISP.Event{}
-      iex> attribute = %MISP.Attribute{value: "8.8.8.8", type: "ip-dst"}
-      iex> event |> MISP.Event.add_attribute(attribute)
-      %MISP.Event{
-          %MISP.EventInfo{
-              Attribute: [
-                  %MISP.Attribute{
-                      value: "8.8.8.8",
-                      type: "ip-dst"
-                  }
-              ]
+  Will append the specified attribute to your event struct and return the result.
+
+  To add it to a new event struct:
+
+      iex> my_event = %MISP.EventInfo{info: "hello world!"}
+      iex> my_event_with_attr = MISP.Event.add_attribute(my_event, %MISP.Attribute{value: "8.8.8.8", type: "ip-dst"})
+      %MISP.EventInfo{
+        Attribute: [
+          %MISP.Attribute{
+            value: "8.8.8.8", type: "ip-dst"
           }
+        ]
       }
+      iex> {:ok, my_event_with_attr} = MISP.Event.create(my_event)
 
-  Can also accept lists of attributes for bulk additions
+  To add a new attribute to an existing event:
 
-      iex> attrs = [%MISP.Attribute{value: "8.8.8.8", type: "ip-dst"}, %MISP.Attribute{value: "8.8.8.8", type: "ip-src"}]
-      iex> MISP.Event.get(100) |> MISP.Event.add_attribute(attrs)
+      iex> {:ok, my_event} = MISP.Event.get(24)
+      iex> my_event_with_attr = MISP.Event.add_attribute(my_event, %MISP.Attribute{value: "8.8.8.8", type: "ip-dst"})
+      iex> {:ok, my_event_with_attr} = MISP.Event.update(my_event)      
   """
-  def add_attribute(event, %Attribute{} = attribute) do
-    with %Event{Event: %EventInfo{id: event_id}} <- wrap(event),
-         %Attribute{} <- Attribute.create(event, attribute) do
-      Event.get(event_id)
-    else
-      err -> IO.warn(err)
-    end
+  def add_attribute(%EventInfo{} = event_info, %Attribute{} = attribute) do
+    Map.put(event_info, :Attribute, Map.get(event_info, :Attribute) ++ [attribute])
+  end
+
+  def add_attribute(%Event{Event: %EventInfo{} = event_info} = event, %Attribute{} = attribute) do
+    Map.put(event, :Event, add_attribute(event_info, attribute))    
   end
 
   def add_attribute(%Event{} = event, attributes) when is_list(attributes) do
-    attributes
-    |> Enum.reduce(event, fn attr, acc -> Event.add_attribute(acc, attr) end)
+    Enum.reduce(attributes, event, fn attr, acc -> Event.add_attribute(acc, attr) end)
   end
 
   @doc """
@@ -226,13 +218,13 @@ defmodule MISP.Event do
   Sets a default limit of 100
 
       iex> MISP.Event.search(%{eventinfo: "my event"})
-      [
+      {:ok, [
         %MISP.Event{
           Event: %MISP.EventInfo{
             info: "my event"
           }
         }
-      ]
+      ]}
 
   Valid search keys are listed on MISP's documentation, this section may be out of date
 
@@ -251,8 +243,10 @@ defmodule MISP.Event do
       search_base
       |> Map.merge(params)
 
-    HTTP.post("/events/restSearch", search_params, %{"response" => [Event.decoder()]})
-    |> Map.get("response")
+    case HTTP.post("/events/restSearch", search_params, %{"response" => [Event.decoder()]}) do
+      {:ok, list} -> {:ok, Map.get(list, "response")}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -276,21 +270,17 @@ defmodule MISP.Event do
   This will not save your event immediately (otherwise we end up in timestamp hell if you
   want to do a load at once), so make sure you call update() once you've added your tags
 
-      iex> MISP.Event.get(24) |> MISP.Event.add_tag(%MISP.Tag{name: "test"}) |> MISP.Event.update()
+      iex> {:ok, my_event} = MISP.Event.get(24)
+      iex> tagged = MISP.Event.add_tag(my_event, %MISP.Tag{name: "test"})
+      iex> {:ok, updated_event} = MISP.Event.update(tagged)
   """
-  def add_tag(%Event{} = event, %Tag{} = tag) do
-    new_tags =
-      event
-      |> get_in([:Event, :Tag])
-      |> List.insert_at(0, tag)
-
-    event
-    |> put_in([:Event, :Tag], new_tags)
+  def add_tag(%Event{Event: %EventInfo{} = event_info} = event, %Tag{} = tag) do
+    event_info
+    |> add_tag(tag)
+    |> wrap()
   end
 
-  def add_tag(%EventInfo{} = event, tag) do
-    event
-    |> wrap()
-    |> add_tag(tag)
+  def add_tag(%EventInfo{} = event_info, tag) do
+    Map.put(event_info, :Tag, Map.get(event_info, :Tag) ++ [tag])
   end
 end

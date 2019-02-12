@@ -19,8 +19,6 @@ defmodule MISP do
       }
   """
 
-  require Logger
-
   alias MISP.{
     Event,
     HTTP
@@ -51,14 +49,12 @@ defmodule MISP do
   to connect to
 
       iex> MISP.get_version()
-      "2.4.102"
+      {:ok, "2.4.102"}
   """
   def get_version do
-    version_info =
-      HTTP.get("/servers/getVersion.json")
-      |> Map.get("version")
-
-    Logger.debug("Connection successful, server is running #{version_info}")
-    version_info
+    case HTTP.get("/servers/getVersion.json") do
+      {:ok, resp} -> {:ok, Map.get(resp, "version")}
+      {:error, reason} -> {:error, reason}
+    end
   end
 end

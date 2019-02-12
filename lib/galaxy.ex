@@ -31,37 +31,37 @@ defmodule MISP.Galaxy do
   List all galaxies from MISP
 
       iex> MISP.Galaxy.list()
-      [
+      {:ok, [
         %MISP.Galaxy{
           name: "Mobile Attack - Malware",
           id: "34",
           namespace: "mitre-attack"
         }
-      ]
+      ]}
   """
   def list do
-    "/galaxies/"
-    |> HTTP.get([%{"Galaxy" => Galaxy.decoder()}])
-    |> Enum.map(fn x -> Map.get(x, "Galaxy") end)
+    case HTTP.get("/galaxies/", [%{"Galaxy" => Galaxy.decoder()}]) do
+      {:ok, list} -> {:ok, Enum.map(list, fn x -> Map.get(x, "Galaxy") end)}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
   Get a single galaxy with the provided ID
 
       iex> MISP.Galaxy.get(34)
-      %MISP.Galaxy{
+      {:ok, %MISP.Galaxy{
         name: "Mobile Attack - Malware",
         id: "34",
         namespace: "mitre-attack"
-      }
+      }}
   """
   def get(id) do
-    resp =
-      "/galaxies/view/#{id}"
-      |> HTTP.get(%{"Galaxy" => Galaxy.decoder(), "GalaxyCluster" => [GalaxyCluster.decoder()]})
+    resp = HTTP.get("/galaxies/view/#{id}", %{"Galaxy" => Galaxy.decoder(), "GalaxyCluster" => [GalaxyCluster.decoder()]})
 
-    resp
-    |> Map.get("Galaxy")
-    |> Map.put(:GalaxyCluster, Map.get(resp, "GalaxyCluster"))
+    case resp do
+      {:ok, resp} -> {:ok, resp |> Map.get("Galaxy") |> Map.put(:GalaxyCluster, Map.get(resp, "GalaxyCluster"))}
+      {:error, reason} -> {:error, reason}
+    end
   end
 end
