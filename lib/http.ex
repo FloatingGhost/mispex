@@ -84,7 +84,7 @@ defmodule MISP.HTTP do
         {:ok, body}
 
       {:ok, %HTTPoison.Response{status_code: code, body: body}} ->
-        {:error, body, code: code}
+        {:error, body}
 
       {:error, %HTTPoison.Error{reason: reason}} ->
         {:error, "HTTP Error #{reason}"}
@@ -105,6 +105,42 @@ defmodule MISP.HTTP do
   end
 
   defp decode_response({:error, body}, _) do
-    {:error, body}
+    {:error, format_error(body)}
+  end
+
+  @doc """
+  Check if we can format an ugly JSON error into something a little more
+  human-readable
+
+  It'll usually look like %{"errors" => %{"Event" => %{"info" => ["Info cannot be empty"]}}}
+  """
+  defp format_error(error) when is_binary(error) do
+    # Try to parse JSON, if we can't, just return the bare string
+    case Poison.decode(error) do
+      {:ok, error} -> format_error(error)
+      {:error, _} -> error
+    end
+  end
+
+  defp format_error(%{"errors" => errors}) do
+    errors
+    |> format_error_map([])
+    |> Enum.join(", ")
+  end
+
+  defp format_error_map(%{} = errors, keys) do
+    errors
+    |> Map.keys()
+    |> Enum.map(fn key -> format_error_map(Map.get(errors, key), keys ++ [key]) end)
+  end
+
+  defp format_error_map(errors, keys) when is_list(errors) do
+    key_string = Enum.join(keys, ".")
+    error_string = Enum.join(errors, ", ")
+    "#{key_string}: #{error_string}"
+  end
+
+  defp format_error_map(errors, _) when is_binary(errors) do
+    errors
   end
 end
