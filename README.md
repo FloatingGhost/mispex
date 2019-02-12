@@ -2,6 +2,7 @@
 
 A wrapper around MISP's HTTP API to provide native interaction.
 
+[![Build Status](https://travis-ci.org/FloatingGhost/mispex.svg?branch=master)](https://travis-ci.org/FloatingGhost/mispex)
 
 ## Installation
 
