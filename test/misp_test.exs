@@ -9,6 +9,6 @@ defmodule MISPTest.Base do
   }
 
   test "connection test" do
-    {:ok,  "2.4." <> _} = MISP.get_version()
+    {:ok, "2.4." <> _} = MISP.get_version()
   end
 end

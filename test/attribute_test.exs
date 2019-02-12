@@ -16,7 +16,7 @@ defmodule MISPTest.Attribute do
   end
 
   test "create an attribute and tag it" do
-    {:ok , event} =
+    {:ok, event} =
       %Event{
         Event: %EventInfo{
           info: "my event",

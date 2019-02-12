@@ -20,7 +20,6 @@ defmodule MISP do
   """
 
   alias MISP.{
-    Event,
     HTTP
   }
 

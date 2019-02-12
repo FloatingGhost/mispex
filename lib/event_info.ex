@@ -16,8 +16,7 @@ defmodule MISP.EventInfo do
     Attribute,
     Galaxy,
     Event,
-    Tag,
-    EventInfo
+    Tag
   }
 
   use TypedStruct

@@ -91,12 +91,12 @@ defmodule MISP.Attribute do
     # Remove timestamp, as it causes MASSIVE headaches if it's wrong
     updated_attr = Map.put(attribute, :timestamp, nil)
 
-    
-    case HTTP.post("/attributes/edit/#{id}", updated_attr, %{"response" => %{"Attribute" => Attribute.decoder()}}) do
+    case HTTP.post("/attributes/edit/#{id}", updated_attr, %{
+           "response" => %{"Attribute" => Attribute.decoder()}
+         }) do
       {:ok, updated} -> {:ok, updated |> Map.get("response") |> Map.get("Attribute")}
       {:error, reason} -> {:error, reason}
     end
-
   end
 
   @doc """
@@ -137,10 +137,11 @@ defmodule MISP.Attribute do
       search_base
       |> Map.merge(params)
 
-    case HTTP.post("/attributes/restSearch", search_params, 
-      %{"response" => %{"Attribute" => [Attribute.decoder()]}}) do
-        {:ok, list} -> {:ok, list |> Map.get("response") |> Map.get("Attribute")}
-        {:error, reason} -> {:error, reason}
+    case HTTP.post("/attributes/restSearch", search_params, %{
+           "response" => %{"Attribute" => [Attribute.decoder()]}
+         }) do
+      {:ok, list} -> {:ok, list |> Map.get("response") |> Map.get("Attribute")}
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -166,7 +167,6 @@ defmodule MISP.Attribute do
         {:ok, _} -> {:ok, Map.put(attribute, :Tag, Map.get(attribute, :Tag) ++ [tag])}
         {:error, reason} -> {:error, reason}
       end
-
     else
       {:error, reason} -> {:error, reason}
     end

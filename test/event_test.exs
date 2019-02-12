@@ -12,8 +12,8 @@ defmodule MISPTest.Event do
     on_exit(fn ->
       MISPTest.Helper.delete_events()
       MISPTest.Helper.delete_tags()
-    end)             
-  end 
+    end)
+  end
 
   test "create event" do
     {:ok, my_event} =
@@ -37,7 +37,7 @@ defmodule MISPTest.Event do
   end
 
   test "edit an event" do
-    {:ok, original} = 
+    {:ok, original} =
       %EventInfo{info: "not my event"}
       |> MISP.Event.create()
 
@@ -48,7 +48,7 @@ defmodule MISPTest.Event do
   end
 
   test "delete an event" do
-    {:ok, event} =  %EventInfo{info: "my event"} |> MISP.Event.create()
+    {:ok, event} = %EventInfo{info: "my event"} |> MISP.Event.create()
     {:ok, %{"message" => "Event deleted."}} = MISP.Event.delete(event)
   end
 
@@ -84,10 +84,11 @@ defmodule MISPTest.Event do
     Enum.map(1..10, fn _ -> Event.create(%EventInfo{info: event_info}) end)
 
     {:ok, matching} = MISP.Event.search(%{eventinfo: event_info})
-    deleted_count = 
+
+    deleted_count =
       matching
-        |> MISP.Event.delete()
-        |> Enum.count(fn x -> {:ok, _} = x end)
+      |> MISP.Event.delete()
+      |> Enum.count(fn x -> {:ok, _} = x end)
 
     assert 10 == deleted_count
   end
@@ -98,7 +99,7 @@ defmodule MISPTest.Event do
       %EventInfo{info: "my event"}
       |> MISP.Event.create()
 
-    {:ok, event} = 
+    {:ok, event} =
       event
       |> MISP.Event.add_tag(%Tag{name: "test:event-level-tag-after-create"})
       |> MISP.Event.update()
@@ -115,7 +116,7 @@ defmodule MISPTest.Event do
       %EventInfo{info: "my event"}
       |> MISP.Event.create()
 
-    {:ok, event} = 
+    {:ok, event} =
       event
       |> MISP.Event.add_tag(precreated_tag)
       |> MISP.Event.update()
@@ -152,7 +153,7 @@ defmodule MISPTest.Event do
 
     {:ok, event} = MISP.Event.get(event_id)
 
-    tag_count = 
+    tag_count =
       event
       |> get_in([:Event, :Attribute])
       |> List.first()

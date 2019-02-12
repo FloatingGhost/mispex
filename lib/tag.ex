@@ -34,7 +34,7 @@ defmodule MISP.Tag do
       iex> {:ok, my_tag} = MISP.Tag.create(%MISP.Tag{name: "my tag"})
   """
   def create(%Tag{} = tag) do
-    case HTTP.post("/tags/add", tag, %{"Tag" => decoder}) do
+    case HTTP.post("/tags/add", tag, %{"Tag" => decoder()}) do
       {:ok, resp} -> {:ok, Map.get(resp, "Tag")}
       {:error, reason} -> {:error, reason}
     end
@@ -85,7 +85,7 @@ defmodule MISP.Tag do
        }
       }
   """
-  def delete(%Tag{id: tag_id} = tag) do
+  def delete(%Tag{id: tag_id}) do
     HTTP.post("/tags/delete/#{tag_id}", %{}, nil)
   end
 

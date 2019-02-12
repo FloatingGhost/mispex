@@ -151,11 +151,11 @@ defmodule MISP.Event do
       }
   """
   def update(%Event{Event: %EventInfo{id: event_id}} = event) do
-      # Trust me, setting timestamp to nil is FAR easier than trying to handle
-      # updating it
-      updated_event = put_in(event, [:Event, :timestamp], nil)
+    # Trust me, setting timestamp to nil is FAR easier than trying to handle
+    # updating it
+    updated_event = put_in(event, [:Event, :timestamp], nil)
 
-      HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
+    HTTP.post("/events/edit/#{event_id}", updated_event, MISP.Event.decoder())
   end
 
   @doc """
@@ -205,7 +205,7 @@ defmodule MISP.Event do
   end
 
   def add_attribute(%Event{Event: %EventInfo{} = event_info} = event, %Attribute{} = attribute) do
-    Map.put(event, :Event, add_attribute(event_info, attribute))    
+    Map.put(event, :Event, add_attribute(event_info, attribute))
   end
 
   def add_attribute(%Event{} = event, attributes) when is_list(attributes) do
@@ -274,7 +274,7 @@ defmodule MISP.Event do
       iex> tagged = MISP.Event.add_tag(my_event, %MISP.Tag{name: "test"})
       iex> {:ok, updated_event} = MISP.Event.update(tagged)
   """
-  def add_tag(%Event{Event: %EventInfo{} = event_info} = event, %Tag{} = tag) do
+  def add_tag(%Event{Event: %EventInfo{} = event_info}, %Tag{} = tag) do
     event_info
     |> add_tag(tag)
     |> wrap()

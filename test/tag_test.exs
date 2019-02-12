@@ -12,8 +12,8 @@ defmodule MISPTest.Tags do
     on_exit(fn ->
       MISPTest.Helper.delete_events()
       MISPTest.Helper.delete_tags()
-    end)             
-  end 
+    end)
+  end
 
   test "create a new tag" do
     {:ok, my_tag} = MISP.Tag.create(%MISP.Tag{name: "test:created"})

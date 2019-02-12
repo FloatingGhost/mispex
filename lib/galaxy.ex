@@ -57,11 +57,19 @@ defmodule MISP.Galaxy do
       }}
   """
   def get(id) do
-    resp = HTTP.get("/galaxies/view/#{id}", %{"Galaxy" => Galaxy.decoder(), "GalaxyCluster" => [GalaxyCluster.decoder()]})
+    resp =
+      HTTP.get("/galaxies/view/#{id}", %{
+        "Galaxy" => Galaxy.decoder(),
+        "GalaxyCluster" => [GalaxyCluster.decoder()]
+      })
 
     case resp do
-      {:ok, resp} -> {:ok, resp |> Map.get("Galaxy") |> Map.put(:GalaxyCluster, Map.get(resp, "GalaxyCluster"))}
-      {:error, reason} -> {:error, reason}
+      {:ok, resp} ->
+        {:ok,
+         resp |> Map.get("Galaxy") |> Map.put(:GalaxyCluster, Map.get(resp, "GalaxyCluster"))}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 end

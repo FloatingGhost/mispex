@@ -20,17 +20,16 @@ defmodule MISP.HTTP do
   def get(path, decode_as \\ nil) do
     options = MISP.config()
 
-    response = 
-      options
-      |> Keyword.get(:url)
-      |> URI.merge(path)
-      |> URI.to_string()
-      |> HTTPoison.get(
-        headers(options),
-        timeout: 100 * 60
-      )
-      |> handle_response()
-      |> decode_response(decode_as)
+    options
+    |> Keyword.get(:url)
+    |> URI.merge(path)
+    |> URI.to_string()
+    |> HTTPoison.get(
+      headers(options),
+      timeout: 100 * 60
+    )
+    |> handle_response()
+    |> decode_response(decode_as)
   end
 
   @doc """
@@ -42,18 +41,17 @@ defmodule MISP.HTTP do
   def post(path, %{} = body, decode_as \\ nil) do
     options = MISP.config()
 
-    response = 
-      options
-      |> Keyword.get(:url)
-      |> URI.merge(path)
-      |> URI.to_string()
-      |> HTTPoison.post(
-        Poison.encode!(body),
-        headers(options),
-        timeout: 100 * 60
-      )
-      |> handle_response()
-      |> decode_response(decode_as)
+    options
+    |> Keyword.get(:url)
+    |> URI.merge(path)
+    |> URI.to_string()
+    |> HTTPoison.post(
+      Poison.encode!(body),
+      headers(options),
+      timeout: 100 * 60
+    )
+    |> handle_response()
+    |> decode_response(decode_as)
   end
 
   @doc """
@@ -65,17 +63,16 @@ defmodule MISP.HTTP do
   def delete(path) do
     options = MISP.config()
 
-    response = 
-      options
-      |> Keyword.get(:url)
-      |> URI.merge(path)
-      |> URI.to_string()
-      |> HTTPoison.delete(
-        headers(options),
-        timeout: 100 * 60
-      )
-      |> handle_response()
-      |> decode_response(nil)
+    options
+    |> Keyword.get(:url)
+    |> URI.merge(path)
+    |> URI.to_string()
+    |> HTTPoison.delete(
+      headers(options),
+      timeout: 100 * 60
+    )
+    |> handle_response()
+    |> decode_response(nil)
   end
 
   defp handle_response(resp) do
@@ -83,7 +80,7 @@ defmodule MISP.HTTP do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         {:ok, body}
 
-      {:ok, %HTTPoison.Response{status_code: code, body: body}} ->
+      {:ok, %HTTPoison.Response{status_code: _, body: body}} ->
         {:error, body}
 
       {:error, %HTTPoison.Error{reason: reason}} ->
@@ -91,15 +88,10 @@ defmodule MISP.HTTP do
     end
   end
 
-  @doc """
-  Decode a MISP response, with an optional argument to decode to struct
-  """
   defp decode_response({:ok, body}, decode_as) do
     case Poison.decode(body) do
       {:ok, %{"errors" => errors}} -> {:error, reason: errors}
-
       {:ok, _} -> {:ok, Poison.decode!(body, as: decode_as)}
-
       {:error, {reason, _, _}} -> {:error, reason}
     end
   end
@@ -108,12 +100,9 @@ defmodule MISP.HTTP do
     {:error, format_error(body)}
   end
 
-  @doc """
-  Check if we can format an ugly JSON error into something a little more
-  human-readable
-
-  It'll usually look like %{"errors" => %{"Event" => %{"info" => ["Info cannot be empty"]}}}
-  """
+  # Check if we can format an ugly JSON error into something a little more
+  # human-readable
+  # It'll usually look like %{"errors" => %{"Event" => %{"info" => ["Info cannot be empty"]}}}
   defp format_error(error) when is_binary(error) do
     # Try to parse JSON, if we can't, just return the bare string
     case Poison.decode(error) do
