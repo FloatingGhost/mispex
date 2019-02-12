@@ -1,5 +1,5 @@
 use Mix.Config
 
 config :mispex,
-  url: "http://floatingghost-misp-testable",
+  url: "http://misp",
   apikey: "testmispapikeytestmispapikeytestmispapik"

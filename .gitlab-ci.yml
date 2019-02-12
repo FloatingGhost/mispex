@@ -7,7 +7,8 @@ variables:
 test:
   image: elixir:1.8
   services:
-  - floatingghost/misp-testable:v2.4.102
+  - name: floatingghost/misp-testable:v2.4.102
+    alias: misp
 
   before_script:
   - cp config/gitlab.exs config/test.exs
