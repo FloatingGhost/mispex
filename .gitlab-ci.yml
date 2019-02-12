@@ -1,0 +1,19 @@
+stages:
+  - test
+
+variables:
+  MIX_ENV: test
+
+test:
+  image: elixir:1.8
+  services:
+  - floatingghost/misp-testable:v2.4.102
+
+  before_script:
+  - cp config/gitlab.exs config/test.exs
+  - mix local.rebar --force
+  - mix local.hex --force
+  - mix deps.get
+
+  script:
+  - mix test
