@@ -26,7 +26,7 @@ defmodule MISP.Feed do
     field :enabled, boolean(), default: true
     field :distribution, String.t()
     field :sharing_group_id, String.t()
-    field :tag_id, String.t()
+    field :tag_id, String.t(), default: "0"
     field :default, boolean(), default: true
     field :source_format, String.t(), default: "misp"
     field :fixed_event, boolean(), default: true
@@ -70,8 +70,16 @@ defmodule MISP.Feed do
     end
   end
 
-  # FIXME Gives a "request blackholed" error with no info
+  @doc """
+  Create a new feed
+
+      iex> %MISP.Feed{url: "https://my.feed", name: "my feed"} |> MISP.Feed.create()
+      {:ok, %MISP.Feed{}}
+  """
   def create(%Feed{} = feed) do
-    HTTP.post("/feeds/add", feed, nil)
+    case HTTP.post("/feeds/add", %{Feed: feed}, %{"Feed" => decoder()}) do
+      {:ok, resp} -> {:ok, Map.get(resp, "Feed")}
+      {:error, reason} -> {:error, reason}
+    end
   end
 end
