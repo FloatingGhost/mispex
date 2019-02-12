@@ -128,6 +128,10 @@ defmodule MISP.HTTP do
     |> Enum.join(", ")
   end
 
+  defp format_error(%{"message" => message}) do
+    message
+  end
+
   defp format_error_map(%{} = errors, keys) do
     errors
     |> Map.keys()
