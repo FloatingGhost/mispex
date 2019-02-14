@@ -10,6 +10,7 @@ defmodule MISP.Server do
     Server
   }
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :url, String.t()

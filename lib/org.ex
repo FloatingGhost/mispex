@@ -5,6 +5,7 @@ defmodule MISP.Org do
 
   use TypedStruct
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :name, String.t()

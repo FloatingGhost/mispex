@@ -17,6 +17,7 @@ defmodule MISP.Feed do
     HTTP
   }
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :name, String.t(), default: "feed name"

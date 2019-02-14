@@ -10,6 +10,7 @@ defmodule MISP.Tag do
 
   use TypedStruct
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :name, String.t()

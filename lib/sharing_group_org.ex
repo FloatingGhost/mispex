@@ -5,6 +5,7 @@ defmodule MISP.SharingGroupOrg do
     Org
   }
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :sharing_group_id, String.t()

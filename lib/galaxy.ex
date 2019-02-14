@@ -11,6 +11,7 @@ defmodule MISP.Galaxy do
     HTTP
   }
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :uuid, String.t()

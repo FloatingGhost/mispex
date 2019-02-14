@@ -5,6 +5,7 @@ defmodule MISP.GalaxyCluster do
 
   use TypedStruct
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :uuid, String.t()

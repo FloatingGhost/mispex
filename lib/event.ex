@@ -16,6 +16,7 @@ defmodule MISP.Event do
 
   use TypedStruct
 
+  @derive Jason.Encoder
   typedstruct do
     field :Event, EventInfo.t(), default: %EventInfo{info: "mispex event"}
   end

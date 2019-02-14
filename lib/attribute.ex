@@ -22,6 +22,7 @@ defmodule MISP.Attribute do
 
   use TypedStruct
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :type, String.t()

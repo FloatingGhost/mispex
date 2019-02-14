@@ -9,6 +9,7 @@ defmodule MISP.SharingGroup do
     HTTP
   }
 
+  @derive Jason.Encoder
   typedstruct do
     field :id, String.t()
     field :name, String.t(), default: "default name"

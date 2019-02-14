@@ -5,7 +5,7 @@ defmodule MISP.MixProject do
     [
       app: :mispex,
       description: "A wrapper to interact with MISP's API.",
-      version: "0.1.7",
+      version: "0.1.8",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -35,7 +35,8 @@ defmodule MISP.MixProject do
       {:poison, "~> 3.1"},
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:typed_struct, "~> 0.1.4"},
-      {:accessible, "~> 0.2.1"}
+      {:accessible, "~> 0.2.1"},
+      {:jason, "~> 1.1.2"}
     ]
   end
 end
