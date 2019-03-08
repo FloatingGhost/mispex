@@ -9,8 +9,8 @@ services:
   - docker
 
 before_install:
-  - docker pull floatingghost/misp-testable:v2.4.102
-  - docker run -d -p 80:80 floatingghost/misp-testable:v2.4.102
+  - docker pull floatingghost/misp-testable:v2.4.103
+  - docker run -d -p 80:80 floatingghost/misp-testable:v2.4.103
 
 install:
   - cp config/travis.exs config/test.exs
