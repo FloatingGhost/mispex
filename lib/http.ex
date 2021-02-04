@@ -83,8 +83,8 @@ defmodule MISP.HTTP do
       {:ok, %HTTPoison.Response{status_code: _, body: body}} ->
         {:error, body}
 
-      {:error, %HTTPoison.Error{reason: reason}} ->
-        {:error, "HTTP Error #{reason}"}
+      {:error, %HTTPoison.Error{} = e} ->
+        {:error, "HTTP Error #{HTTPoison.Error.message(e)}"}
     end
   end
 
