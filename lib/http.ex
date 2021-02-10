@@ -11,6 +11,11 @@ defmodule MISP.HTTP do
     ]
   end
 
+  defp defaults(), do: [timeout: 100 * 60]
+  defp client_options(options), do: Keyword.get(options, :client_options)
+
+  defp client_config(options), do: Keyword.merge(defaults(), client_options(options))
+
   @doc """
   An HTTP GET Request
 
@@ -26,7 +31,7 @@ defmodule MISP.HTTP do
     |> URI.to_string()
     |> HTTPoison.get(
       headers(options),
-      timeout: 100 * 60
+      client_config(options)
     )
     |> handle_response()
     |> decode_response(decode_as)
@@ -48,7 +53,7 @@ defmodule MISP.HTTP do
     |> HTTPoison.post(
       Poison.encode!(body),
       headers(options),
-      timeout: 100 * 60
+      client_config(options)
     )
     |> handle_response()
     |> decode_response(decode_as)
@@ -69,7 +74,7 @@ defmodule MISP.HTTP do
     |> URI.to_string()
     |> HTTPoison.delete(
       headers(options),
-      timeout: 100 * 60
+      client_config(options)
     )
     |> handle_response()
     |> decode_response(nil)
