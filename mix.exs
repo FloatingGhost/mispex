@@ -36,7 +36,7 @@ defmodule MISP.MixProject do
       {:ex_doc, ">= 0.0.0", only: :dev},
       {:typed_struct, "~> 0.1.4"},
       {:accessible, "~> 0.2.1"},
-      {:jason, "~> 1.1.2"}
+      {:jason, "~> 1.2"}
     ]
   end
 end
