@@ -12,7 +12,7 @@ defmodule MISP.HTTP do
   end
 
   defp defaults(), do: [timeout: 100 * 60]
-  defp client_options(options), do: Keyword.get(options, :client_options)
+  defp client_options(options), do: Keyword.get(options, :client_options, [])
 
   defp client_config(options), do: Keyword.merge(defaults(), client_options(options))
 
